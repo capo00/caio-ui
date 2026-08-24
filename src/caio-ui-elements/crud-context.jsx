@@ -1,6 +1,6 @@
 //@@viewOn:imports
 import { createComponent, useDataList, useUpdateEffect, useMemo, Utils } from "uu5g05";
-import Config from "./config/config.js";
+import Config from "./config/config";
 import Call from "./call";
 //@@viewOff:imports
 

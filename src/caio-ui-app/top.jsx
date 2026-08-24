@@ -2,7 +2,7 @@
 import { createVisualComponent, Utils, useStickyTop, useRoute, useLsi, useState, useScreenSize, Lsi } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
 import OcAuth from "../caio-ui-auth";
-import Config from "./config/config.js";
+import Config from "./config/config";
 import anonymousUri from "./assets/anonymous.png";
 //@@viewOff:imports
 

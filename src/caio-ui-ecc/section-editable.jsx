@@ -4,7 +4,7 @@ import Uu5Elements from "uu5g05-elements";
 import Uu5Forms from "uu5g05-forms";
 import Uu5RichTextElements from "uu5richtextg01-elements";
 import Uu5CodeKit from "uu5codekitg01";
-import Config from "./config/config.js";
+import Config from "./config/config";
 
 //@@viewOff:imports
 

@@ -1,6 +1,6 @@
 //@@viewOn:imports
 import { Utils, createVisualComponent, PropTypes } from "uu5g05";
-import Config from "./config/config.js";
+import Config from "./config/config";
 //@@viewOff:imports
 
 //@@viewOn:helpers

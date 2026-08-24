@@ -1,6 +1,6 @@
 //@@viewOn:imports
 import { createComponent, useDataList, useDataObject, useUpdateEffect, useMemo, Utils, useEffect } from "uu5g05";
-import Config from "./config/config.js";
+import Config from "./config/config";
 import OcElements from "../caio-ui-elements";
 //@@viewOff:imports
 

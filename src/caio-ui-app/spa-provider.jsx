@@ -7,7 +7,7 @@ import {
   LanguageProvider,
 } from "uu5g05";
 import OcAuth from "../caio-ui-auth";
-import Config from "./config/config.js";
+import Config from "./config/config";
 //@@viewOff:imports
 
 //@@viewOn:constants

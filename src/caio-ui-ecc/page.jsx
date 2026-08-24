@@ -1,7 +1,7 @@
 //@@viewOn:imports
 import { createVisualComponent, Lsi, useState } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
-import Config from "./config/config.js";
+import Config from "./config/config";
 import { PageProvider, usePage } from "./page-context";
 import CreatePageButton from "./create-page-button";
 import OcAuth from "../caio-ui-auth";

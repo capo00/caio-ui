@@ -5,7 +5,7 @@ import Uu5Forms from "uu5g05-forms";
 import Uu5TilesElements from "uu5tilesg02-elements";
 import Uu5CodeKit from "uu5codekitg01";
 import { withServerlessTable, ListBlock } from "../uu5tilesg02-extension";
-import Config from "./config/config.js";
+import Config from "./config/config";
 
 //@@viewOff:imports
 function getSortFn(sort, code) {

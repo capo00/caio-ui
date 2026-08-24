@@ -1,7 +1,7 @@
 //@@viewOn:imports
 import { createVisualComponent, ErrorBoundary } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
-import Config from "./config/config.js";
+import Config from "./config/config";
 import SpaError from "./spa-error";
 //@@viewOff:imports
 

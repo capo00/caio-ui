@@ -1,3 +1,3 @@
-import * as Exports from "./exports.js";
-export * from "./exports.js";
+import * as Exports from "./exports";
+export * from "./exports";
 export default Exports;

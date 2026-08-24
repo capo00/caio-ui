@@ -1,7 +1,7 @@
 import { createVisualComponent, useDataObject } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
 import OcElements from "../caio-ui-elements";
-import Config from "./config/config.js";
+import Config from "./config/config";
 
 const View = createVisualComponent({
   uu5Tag: Config.TAG + "IdentityItem.View",

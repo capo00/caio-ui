@@ -1,6 +1,6 @@
 //@@viewOn:imports
 import { createVisualComponent, Utils } from "uu5g05";
-import Config from "./config/config.js";
+import Config from "./config/config";
 import SectionEditable from "./section-editable";
 //@@viewOff:imports
 

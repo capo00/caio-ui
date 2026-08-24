@@ -1,8 +1,8 @@
 import { createVisualComponent, useLayoutEffect } from "uu5g05";
 import Uu5Forms from "uu5g05-forms";
 import OcElements from "../caio-ui-elements";
-import Config from "./config/config.js";
-import IdentityItem from "./identity-item.js";
+import Config from "./config/config";
+import IdentityItem from "./identity-item";
 
 const FormIdentitySelect = createVisualComponent({
   uu5Tag: Config.TAG + "FormIdentitySelect",
