@@ -29,7 +29,7 @@ import UiApp from "caio-ui/src/caio-ui-app";
 import UiElements from "caio-ui/src/caio-ui-elements";
 ```
 
-Zdroje jsou navíc v `src/**/*.js` s JSX uvnitř (ne `.jsx`), což bundlery samy neparsují. Obojí i s workaroundy viz [Known issues](#known-issues).
+Workaroundy viz [Known issues](#known-issues).
 
 ---
 
@@ -213,10 +213,10 @@ npm pack --pack-destination dist
 
 ## Known issues
 
-Reprodukované při rozjezdu appky `app-v1`; kompletní rozbor včetně applied fixů je v [app-v1/README-VITE-UU5.md](../../../app-v1/README-VITE-UU5.md).
+Reprodukované při rozjezdu appky na tomhle stacku. Kontext a plán úprav na straně buildu je v README `caio-devkit`, sekce *Frontend architektura: uu5 přes `Uu5Loader`, ne přes bundler*.
 
-- **JSX v souborech `.js`.** Rollupí commonjs resolver to z `node_modules` neparsuje → build appky spadne na `[commonjs--resolver] Expression expected`. Appka to obejde vite pluginem s `enforce: "pre"`, který soubory přehání přes esbuild s `loader: "jsx"`; správná oprava je přejmenovat zdroje tady na `.jsx` (nebo publikovat předbuilděný ESM bundle).
-- **Root barrel `caio-ui` se pod Vite nedá naimportovat.** `src/index.js` exportuje `UiEcc` → `uu5richtextg01-elements`, a ten si **při inicializaci modulu** dereferencuje `Utils.Uu5Loader.get("uu5g05-forms")`. Bundlované knihovny přitom do uu5 loaderu zaregistrovat nejde (jeho API nemá `set`), takže to nemá řešení na straně appky → `Cannot read properties of null (reading 'get')`. Importuj submoduly: `import UiApp from "caio-ui/src/caio-ui-app"`. **`UiEcc` je pod Vite nepoužitelné.** Chtělo by to `exports` mapu a vyndat `UiEcc` z barrelu.
+- ~~**JSX v souborech `.js`.**~~ **Opraveno 2026-08-24** — 23 zdrojů s JSX je přejmenovaných na `.jsx` a relativní importy jsou bez přípony. Appky už nepotřebují ten `enforce: "pre"` plugin s esbuild `loader: "jsx"`; ověřeno buildem referenční appky bez něj.
+- **Root barrel `caio-ui` se pod Vite nedá naimportovat.** `src/index.js` exportuje `UiEcc` → `uu5richtextg01-elements`, a ten si **při inicializaci modulu** dereferencuje `Utils.Uu5Loader.get("uu5g05-forms")`. Když je `uu5g05-forms` zbundlované do appky, loader o něm neví a vrátí `undefined` → `Cannot read properties of null (reading 'get')`. (Dřív tu stálo, že loader nemá `set` a nejde do něj nic zaregistrovat — to je omyl, `Uu5Loader.set(name, { __useDefault: true, default: x })` existuje.) **Až se knihovny budou načítat přes loader místo bundlování, tenhle problém zmizí sám** — viz plán v README `caio-devkit`. Importuj submoduly: `import UiApp from "caio-ui/src/caio-ui-app"`. **`UiEcc` je pod Vite nepoužitelné.** Chtělo by to `exports` mapu a vyndat `UiEcc` z barrelu.
 - **`config.js` čte `process.env.OUTPUT_NAME`**, které `createViteConfig` v `caio-devkit` nedefinuje → `ReferenceError: process is not defined`. Appka si ho musí dodefinovat sama.
 - **`UiEcc` vyžaduje backend, který `caio-server` nedodává.** Viz sekce [UiEcc](#uiecc) — bez vlastní implementace `eccPage`/`eccSection` use cases appka spadne na 404 při prvním renderu `Page`.
 - **`UiAuth.Unauthenticated` volá nedefinované `register()`.** Tlačítko „Registrovat se“ je `disabled`, takže to nevyskočí, ale `register` v `unauthenticated.js` neexistuje — po odblokování tlačítka to hodí `ReferenceError`.
