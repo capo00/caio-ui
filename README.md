@@ -22,14 +22,15 @@ React komponenty postavené nad Unicorn **uu5g05**/uuSuite ekosystémem, navrže
 import { UiApp, UiAuth, UiElements, UiEcc } from "caio-ui";
 ```
 
-**Pod Vite tenhle root import nefunguje** — zatáhne `UiEcc` → `uu5richtextg01-elements`, které se nedá bundlovat. Importuj submoduly:
+Root import **funguje od 2026-08-24**, kdy `caio-devkit` přestal uu5 bundlovat a začal je načítat přes `uu5loaderg01` — `uu5richtextg01-elements` si při inicializaci modulu dereferencuje `Utils.Uu5Loader.get("uu5g05-forms")` a loader mu ji teď vrátí. Ověřeno na referenční appce (nula chyb v konzoli).
+
+Submoduly jdou importovat i přímo, ale ošklivě, protože `package.json` nemá `exports` mapu:
 
 ```javascript
 import UiApp from "caio-ui/src/caio-ui-app";
-import UiElements from "caio-ui/src/caio-ui-elements";
 ```
 
-Workaroundy viz [Known issues](#known-issues).
+Viz [Known issues](#known-issues).
 
 ---
 
@@ -216,7 +217,8 @@ npm pack --pack-destination dist
 Reprodukované při rozjezdu appky na tomhle stacku. Kontext a plán úprav na straně buildu je v README `caio-devkit`, sekce *Frontend architektura: uu5 přes `Uu5Loader`, ne přes bundler*.
 
 - ~~**JSX v souborech `.js`.**~~ **Opraveno 2026-08-24** — 23 zdrojů s JSX je přejmenovaných na `.jsx` a relativní importy jsou bez přípony. Appky už nepotřebují ten `enforce: "pre"` plugin s esbuild `loader: "jsx"`; ověřeno buildem referenční appky bez něj.
-- **Root barrel `caio-ui` se pod Vite nedá naimportovat.** `src/index.js` exportuje `UiEcc` → `uu5richtextg01-elements`, a ten si **při inicializaci modulu** dereferencuje `Utils.Uu5Loader.get("uu5g05-forms")`. Když je `uu5g05-forms` zbundlované do appky, loader o něm neví a vrátí `undefined` → `Cannot read properties of null (reading 'get')`. (Dřív tu stálo, že loader nemá `set` a nejde do něj nic zaregistrovat — to je omyl, `Uu5Loader.set(name, { __useDefault: true, default: x })` existuje.) **Až se knihovny budou načítat přes loader místo bundlování, tenhle problém zmizí sám** — viz plán v README `caio-devkit`. Importuj submoduly: `import UiApp from "caio-ui/src/caio-ui-app"`. **`UiEcc` je pod Vite nepoužitelné.** Chtělo by to `exports` mapu a vyndat `UiEcc` z barrelu.
+- ~~**Root barrel `caio-ui` se pod Vite nedá naimportovat.**~~ **Vyřešeno 2026-08-24** architekturou v `caio-devkit`: `uu5g05-forms` je v import mapě loaderu, takže `Utils.Uu5Loader.get("uu5g05-forms")`, které si `uu5richtextg01-elements` dělá při inicializaci modulu, dostane knihovnu. Dokud se uu5 bundlovalo, loader o ní nevěděl a padalo to na `Cannot read properties of null (reading 'get')` — a nešlo to obejít, protože zaregistrovat zbundlovanou knihovnu **veřejné API loaderu neumí** (`Uu5Loader.set` neexistuje, ověřeno za běhu; funguje jen `window.System.set`, což je sáhnutí mimo API).
+- **Chybí `exports` mapa.** Submodul se musí importovat jako `caio-ui/src/caio-ui-app` místo `caio-ui/app`.
 - **`config.js` čte `process.env.OUTPUT_NAME`**, které `createViteConfig` v `caio-devkit` nedefinuje → `ReferenceError: process is not defined`. Appka si ho musí dodefinovat sama.
 - **`UiEcc` vyžaduje backend, který `caio-server` nedodává.** Viz sekce [UiEcc](#uiecc) — bez vlastní implementace `eccPage`/`eccSection` use cases appka spadne na 404 při prvním renderu `Page`.
 - **`UiAuth.Unauthenticated` volá nedefinované `register()`.** Tlačítko „Registrovat se“ je `disabled`, takže to nevyskočí, ale `register` v `unauthenticated.js` neexistuje — po odblokování tlačítka to hodí `ReferenceError`.
