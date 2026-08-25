@@ -13,7 +13,35 @@
   var CMD_PREFIX = CONFIG.cmdPrefix || "/auth";
   var APP_NAME = CONFIG.appName || "";
 
-  var PROVIDER_LABELS = { google: "Přihlásit se přes Google", facebook: "Přihlásit se přes Facebook" };
+  /*
+   * Provider buttons follow each brand's sign-in guidelines: Google is a white button
+   * with a #747775 border, #1f1f1f Roboto-ish label and the four-colour G; Facebook is
+   * #1877f2 with white text and the white f. Both keep the logo at 18-20px with the
+   * label beside it, and the wording is the sanctioned "Sign in with X" / "Continue
+   * with X" form. Do not restyle these into the app's own colours -- both brands
+   * require their own.
+   */
+  var PROVIDERS = {
+    google: {
+      label: "Přihlásit se přes Google",
+      className: "provider provider--google",
+      logo:
+        '<svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true" focusable="false">' +
+        '<path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92a8.78 8.78 0 0 0 2.68-6.62z"/>' +
+        '<path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86a5.36 5.36 0 0 1-5.03-3.7H.96v2.34A9 9 0 0 0 9 18z"/>' +
+        '<path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.96H.96a9 9 0 0 0 0 8.08l3.01-2.32z"/>' +
+        '<path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.32A5.36 5.36 0 0 1 9 3.58z"/>' +
+        "</svg>",
+    },
+    facebook: {
+      label: "Přihlásit se přes Facebook",
+      className: "provider provider--facebook",
+      logo:
+        '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false">' +
+        '<path fill="#ffffff" d="M13.06 20v-7.75h2.6l.39-3.02h-2.99V7.3c0-.87.24-1.47 1.5-1.47h1.6V3.13c-.28-.04-1.23-.12-2.34-.12-2.31 0-3.9 1.41-3.9 4v2.22H7.31v3.02h2.61V20h3.14z"/>' +
+        "</svg>",
+    },
+  };
 
   var el = {
     card: document.querySelector(".card"),
@@ -78,10 +106,23 @@
   function renderProviders(providerList) {
     el.providers.innerHTML = "";
     (providerList || []).forEach(function (provider) {
+      var brand = PROVIDERS[provider];
       var button = document.createElement("button");
       button.type = "button";
-      button.className = "provider";
-      button.textContent = PROVIDER_LABELS[provider] || provider;
+      button.className = brand ? brand.className : "provider";
+
+      if (brand) {
+        var logo = document.createElement("span");
+        logo.className = "provider-logo";
+        logo.innerHTML = brand.logo;
+        button.appendChild(logo);
+      }
+
+      var label = document.createElement("span");
+      label.className = "provider-label";
+      label.textContent = brand ? brand.label : provider;
+      button.appendChild(label);
+
       button.addEventListener("click", function () {
         // Same window on purpose: the opener survives the navigation, so the callback
         // page can still postMessage into the app and close this popup.

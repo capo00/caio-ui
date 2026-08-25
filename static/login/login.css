@@ -117,13 +117,60 @@ button[disabled] {
   font-weight: 600;
 }
 
+/*
+ * Provider buttons follow each brand's own sign-in guidelines, not this page's palette
+ * -- both Google and Facebook require their colours, their logo and their wording, in
+ * light and dark alike. That is why these rules carry fixed colours and are not part of
+ * the theming above.
+ */
 .provider {
-  background: var(--bg);
-  border-color: var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 0 12px;
+  text-align: left;
+}
+
+.provider-logo {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.provider-label {
+  flex: 1 1 auto;
   text-align: center;
 }
 
-.provider:hover,
+/* Google: white surface, #747775 border, #1f1f1f label, Roboto. */
+.provider--google {
+  background: #fff;
+  border: 1px solid #747775;
+  color: #1f1f1f;
+  font-family: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+}
+
+.provider--google:hover {
+  background: #f7f8f8;
+}
+
+/* Facebook: #1877f2 with the white f and white label. */
+.provider--facebook {
+  background: #1877f2;
+  border-color: #1877f2;
+  color: #fff;
+  font-family: Helvetica, Arial, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.provider--facebook:hover {
+  background: #166fe5;
+}
+
 .primary:hover {
   filter: brightness(0.96);
 }
@@ -164,6 +211,18 @@ button[disabled] {
 }
 
 @media (prefers-color-scheme: dark) {
+  /* Google's own dark variant of the button, rather than leaving a white slab on a
+     dark card. Facebook has no dark variant -- #1877f2 stays. */
+  .provider--google {
+    background: #131314;
+    border-color: #8e918f;
+    color: #e3e3e3;
+  }
+
+  .provider--google:hover {
+    background: #1e1f20;
+  }
+
   :root {
     --text: #ececec;
     --muted: #a5a5a5;

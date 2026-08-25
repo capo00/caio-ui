@@ -11,6 +11,9 @@ import Config from "./config/config";
 //@@viewOff:imports
 
 //@@viewOn:constants
+// Which languages the app offers -- what Uu5Elements.LanguageSelector lists and what
+// LSI objects are read for. An app that is not Czech-only passes its own.
+const DEFAULT_LANGUAGE_LIST = ["cs"];
 //@@viewOff:constants
 
 //@@viewOn:css
@@ -32,14 +35,14 @@ const SpaProvider = createVisualComponent({
   defaultProps: {},
   //@@viewOff:defaultProps
 
-  render({ children, cmdPrefix }) {
+  render({ children, cmdPrefix, languageList = DEFAULT_LANGUAGE_LIST }) {
     //@@viewOn:private
     //@@viewOff:private
 
     //@@viewOn:render
     return (
       <AppBackgroundProvider>
-        <LanguageListProvider languageList={["cs"]}>
+        <LanguageListProvider languageList={languageList}>
           <LanguageProvider>
             <OcAuth.SessionProvider cmdPrefix={cmdPrefix}>
               <RouteProvider>{children}</RouteProvider>
