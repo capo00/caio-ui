@@ -72,7 +72,7 @@ Session management napojený 1:1 na `Authentication` modul z `caio-server`.
 | Export | Desc |
 |---|---|
 | `SessionProvider` (`{ cmdPrefix = "/auth" }`) | Při mountu zavolá `GET <cmdPrefix>` (s cookie) a uloží identitu. Poslouchá `postMessage({ type: "auth", identity })` — tím OAuth popup callback appce pošle výsledek přihlášení. |
-| `useSession()` | `{ identity, state, login(), logout() }`. `state` je `"pending"` \| `"notAuthenticated"` \| `"authenticated"`. `login()` otevře popup na `<cmdPrefix>/google`. `logout()` zavolá `POST <cmdPrefix>/logout` a vynuluje identitu. |
+| `useSession()` | `{ identity, state, login(), logout() }`. `state` je `"pending"` \| `"notAuthenticated"` \| `"authenticated"`. `login()` otevře popup na `/login.html` — přihlašovací stránku (viz níž). `logout()` zavolá `POST <cmdPrefix>/logout` a vynuluje identitu. |
 | `Unauthenticated` | Placeholder box s tlačítkem „Přihlásit se“ (`login()`). Používá `withRoute` interně. |
 | `Unauthorized` | Placeholder box „Nemáte oprávnění“. |
 | `IdentityItem` (`{ identity, firstName?, surname?, name?, photo? }`) | Zobrazí uživatele (`Uu5Elements.InfoItem`). Když nedostane jméno/foto přímo v props, dotáhne je přes `identity/get`. |
@@ -81,6 +81,22 @@ Session management napojený 1:1 na `Authentication` modul z `caio-server`.
 ```javascript
 const { identity, state, login, logout } = UiAuth.useSession();
 ```
+
+### Přihlašovací stránka `static/login/`
+
+`login()` otevírá popup na **`/login.html`** — samostatnou stránku (`static/login/login.html`, `login.css`, `login.js`), ve které si uživatel vybere Google, Facebook, nebo se přihlásí či zaregistruje jménem a heslem.
+
+Je to **čisté HTML, CSS a vanilla JS bez uu5 a bez Reactu**: popup se tím otevře v jednom requestu místo natažení celé appky. Není to tedy uu5 komponenta a nejde importovat — do buildu ji kopíruje `caio-devkit` (plugin `caio-devkit:login-page`) a při kopii do ní doplní jméno a `theme_color` z `assets/meta/manifest.json`.
+
+Jak se chová:
+
+- `GET /auth/config` jí řekne, **které providery** deployment vůbec má nakonfigurované a jaké je pravidlo na heslo — tlačítka i hláška u pole se tím řídí, takže pravidlo neexistuje dvakrát.
+- Google/Facebook: naviguje **to samé okno** na `/auth/<provider>`. `window.opener` navigaci přežije, takže identitu pošle callback stránka ze serveru, jako dosud.
+- Jméno a heslo: `POST /auth/login` nebo `/auth/register`, a stránka pak sama pošle `postMessage({ type: "auth", identity })` openerovi a zavře se — což `SessionProvider` už poslouchá.
+- Otevřená přímo v tabu (bez openera) po úspěchu přesměruje na `/`.
+- `/login.html`, ne `/login`: `caio-server` odpovídá na cesty bez přípony `index.html`, takže `/login` by vrátilo appku.
+
+Appka, která chce vlastní vzhled, si položí vlastní `client/public/login.html` — devkit svoji kopii v tom případě nevkládá.
 
 ---
 
@@ -221,4 +237,4 @@ Reprodukované při rozjezdu appky na tomhle stacku. Kontext a plán úprav na s
 - **Chybí `exports` mapa.** Submodul se musí importovat jako `caio-ui/src/caio-ui-app` místo `caio-ui/app`.
 - **`config.js` čte `process.env.OUTPUT_NAME`**, které `createViteConfig` v `caio-devkit` nedefinuje → `ReferenceError: process is not defined`. Appka si ho musí dodefinovat sama.
 - **`UiEcc` vyžaduje backend, který `caio-server` nedodává.** Viz sekce [UiEcc](#uiecc) — bez vlastní implementace `eccPage`/`eccSection` use cases appka spadne na 404 při prvním renderu `Page`.
-- **`UiAuth.Unauthenticated` volá nedefinované `register()`.** Tlačítko „Registrovat se“ je `disabled`, takže to nevyskočí, ale `register` v `unauthenticated.js` neexistuje — po odblokování tlačítka to hodí `ReferenceError`.
+- ~~**`UiAuth.Unauthenticated` volá nedefinované `register()`.**~~ **Opraveno 2026-08-25** — tlačítko je smazané, registrace se dělá na přihlašovací stránce.

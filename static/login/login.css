@@ -1,0 +1,187 @@
+/*
+ * The login page is deliberately plain: it runs in a popup with no uu5 and no React,
+ * so it loads in one request instead of pulling the whole app in (docs/auth.md, 5.2).
+ * --caio-theme is set from the app's manifest by caio-devkit.
+ */
+:root {
+  --caio-theme: #004191;
+  --text: #1b1b1b;
+  --muted: #6b6b6b;
+  --border: #d6d6d6;
+  --error: #b3261e;
+  --bg: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f4f5f7;
+  color: var(--text);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 28px 24px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%), 0 8px 24px rgb(0 0 0 / 8%);
+}
+
+h1 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.providers {
+  display: grid;
+  gap: 8px;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.separator::before,
+.separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.row {
+  margin-bottom: 14px;
+}
+
+label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  background: var(--bg);
+  color: inherit;
+}
+
+input:focus-visible {
+  outline: 2px solid var(--caio-theme);
+  outline-offset: 1px;
+  border-color: var(--caio-theme);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.primary,
+.provider {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.primary {
+  background: var(--caio-theme);
+  color: #fff;
+  font-weight: 600;
+}
+
+.provider {
+  background: var(--bg);
+  border-color: var(--border);
+  text-align: center;
+}
+
+.provider:hover,
+.primary:hover {
+  filter: brightness(0.96);
+}
+
+.hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.message {
+  margin: 0 0 14px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: #fdecea;
+  color: var(--error);
+  font-size: 13px;
+}
+
+.message.info {
+  background: #eef3fb;
+  color: var(--text);
+}
+
+.switch {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--caio-theme);
+  text-decoration: underline;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #ececec;
+    --muted: #a5a5a5;
+    --border: #3a3a3a;
+    --bg: #232323;
+  }
+
+  body {
+    background: #161616;
+  }
+
+  .message {
+    background: #3a1f1d;
+    color: #ffb4ab;
+  }
+
+  .message.info {
+    background: #22303f;
+    color: var(--text);
+  }
+}

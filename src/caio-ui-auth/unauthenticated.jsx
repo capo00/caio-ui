@@ -29,19 +29,14 @@ const Unauthenticated = createVisualComponent({
         header="Nejdříve se přihlaste"
         {...props}
         nestingLevel={props.nestingLevel ?? "area"}
+        // One action: login() opens the login page, and registration lives there too.
+        // (There used to be a second, disabled button calling an undefined register().)
         actionList={[
           {
             children: "Přihlásit se",
             onClick: () => login(),
             colorScheme: "primary",
             significance: "highlighted",
-          },
-          {
-            children: "Registrovat se",
-            onClick: () => register(),
-            colorScheme: "primary",
-            significance: "subdued",
-            disabled: true,
           },
         ]}
       />

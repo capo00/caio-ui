@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Přihlášení</title>
+    <link rel="stylesheet" href="/login.css" />
+    <!-- caio-devkit replaces this marker with the app name and colour from
+         assets/meta/manifest.json. Without it the defaults in login.js apply. -->
+    <!--caio:login-config-->
+  </head>
+  <body>
+    <main class="card" hidden>
+      <h1 id="app-name">Přihlášení</h1>
+
+      <div id="providers" class="providers"></div>
+
+      <div id="separator" class="separator" hidden><span>nebo</span></div>
+
+      <form id="form" novalidate>
+        <div class="row register-only" hidden>
+          <label for="firstName">Jméno</label>
+          <input id="firstName" name="firstName" autocomplete="given-name" />
+        </div>
+        <div class="row register-only" hidden>
+          <label for="surname">Příjmení</label>
+          <input id="surname" name="surname" autocomplete="family-name" />
+        </div>
+        <div class="row">
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" autocomplete="email" required />
+        </div>
+        <div class="row">
+          <label for="password">Heslo</label>
+          <input id="password" name="password" type="password" required />
+          <p id="password-hint" class="hint register-only" hidden></p>
+        </div>
+
+        <p id="message" class="message" role="alert" hidden></p>
+
+        <button id="submit" type="submit" class="primary">Přihlásit se</button>
+      </form>
+
+      <p class="switch">
+        <span id="switch-text">Nemáte účet?</span>
+        <button id="switch" type="button" class="link">Registrovat se</button>
+      </p>
+    </main>
+
+    <script src="/login.js"></script>
+  </body>
+</html>

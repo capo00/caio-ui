@@ -1,6 +1,7 @@
 import { Utils, useContext, useState, useMemo, useEffect } from "uu5g05";
 
 const DEFAULT_CMD_PREFIX = "/auth";
+const LOGIN_PAGE = "/login.html";
 
 const [SessionContext] = Utils.Context.create({});
 
@@ -46,11 +47,20 @@ function SessionProvider({ cmdPrefix = DEFAULT_CMD_PREFIX, ...props }) {
     return {
       identity: params,
       state: identity === undefined ? "pending" : identity === null ? "notAuthenticated" : "authenticated",
+      /**
+       * Opens the standalone login page (static/login, carried into the build by
+       * caio-devkit) in a popup. The page offers the providers this deployment has
+       * credentials for and an e-mail/password form, and hands the identity back
+       * through the postMessage listener above -- as does the OAuth callback, since
+       * window.opener survives the popup navigating to /auth/<provider>.
+       *
+       * /login.html, not /login: caio-server answers extensionless paths with the SPA.
+       */
       login() {
         const width = Math.min(window.innerWidth, 600);
         const height = Math.min(window.innerHeight, 870);
         window.open(
-          cmdPrefix + "/google",
+          LOGIN_PAGE,
           null,
           `top=${window.innerHeight / 2 - height / 2},left=${window.innerWidth / 2 - width / 2},width=${width},height=${height}`,
         );
