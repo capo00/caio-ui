@@ -19,8 +19,11 @@ function checkResponse(response, dtoIn) {
 }
 const Call = {
   async get(uri, dtoIn = undefined, opts = undefined) {
+    // Always absolute (see post()'s comment) -- previously only built when dtoIn was given,
+    // which happened to cover every call site so far but left a plain relative "entity/list"
+    // (no leading slash) unsafe for a caller without a dtoIn.
+    uri = new URL(uri, location.origin);
     if (dtoIn) {
-      uri = new URL(uri, location.origin);
       uri.search = new URLSearchParams(serializeDtoIn(dtoIn));
     }
 
@@ -39,6 +42,12 @@ const Call = {
   },
 
   async post(uri, dtoIn = undefined, opts = undefined) {
+    // Absolute, same as get() -- a relative string reaching the loader's patched fetch()
+    // (uu5loaderg01, injected for module resolution) throws "Failed to construct 'URL':
+    // Invalid URL" instead of ever leaving the browser. get() only hits this path when dtoIn
+    // is given (building the query string needs a URL object anyway); post() needs it always.
+    uri = new URL(uri, location.origin);
+
     let body,
       contentType = "application/json";
 
