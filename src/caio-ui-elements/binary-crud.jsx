@@ -31,12 +31,20 @@ function Bytes({ value, roundingPosition = -1 }) {
 const CONFIG = {
   file: {
     label: { cs: "Soubor", en: "File" },
+    // download is a same-origin-only hint per the fetch/HTML spec -- a cross-origin GCS uri
+    // (storage.googleapis.com) ignores it and just opens the file, so target="_blank" is what
+    // actually keeps the table page from navigating away.
     output: (value, item) => {
       if (!item.data.uri) return undefined;
-      return item.data.mimeType?.startsWith("image") ? (
-        <Image src={item.data.uri} alt={item.data.name} height={32} />
-      ) : (
-        <Uu5Elements.Link href={item.data.uri} download={item.data.name} />
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
+          {item.data.mimeType?.startsWith("image") && (
+            <Image src={item.data.uri} alt={item.data.name} height={32} />
+          )}
+          <Uu5Elements.Link href={item.data.uri} download={item.data.name} target="_blank">
+            <Lsi lsi={{ cs: "Stáhnout", en: "Download" }} />
+          </Uu5Elements.Link>
+        </div>
       );
     },
     columnProps: { maxWidth: "m" },

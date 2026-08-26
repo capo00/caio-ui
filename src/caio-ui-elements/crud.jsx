@@ -203,24 +203,6 @@ const Crud = createVisualComponent({
             children: <Lsi lsi={{ cs: "Zkopírovat ID" }} />,
             onClick: () => Utils.Clipboard.write(data.data.id),
           },
-          {
-            icon: "uugds-delete",
-            children: <Lsi lsi={{ cs: "Smazat" }} />,
-            colorScheme: "negative",
-            disabled: data.state === "pending",
-            onClick: () =>
-              setRemoveData({
-                callback: () => data.handlerMap.delete({ id: data.data.id }),
-                header: <Lsi lsi={{ cs: "Smazat položku?" }} />,
-                info: (
-                  <Lsi
-                    lsi={{
-                      cs: `Opravdu chcete smazat položku${data.data.name ? ` "${data.data.name}"` : ""}?`,
-                    }}
-                  />
-                ),
-              }),
-          },
         ];
 
         let actionList = [
@@ -232,6 +214,36 @@ const Crud = createVisualComponent({
             iconClosed: null,
           },
         ];
+
+        // Update and delete are each their own visible action by default (compact tucks
+        // both into the "..." menu instead) -- delete used to always live inside the menu,
+        // which hid it an extra click deep and, combined with icons not rendering, made it
+        // easy to miss it was there at all.
+        const deleteItem = {
+          icon: "uugds-delete",
+          tooltip: { cs: "Smazat" },
+          colorScheme: "negative",
+          disabled: data.state === "pending",
+          onClick: () =>
+            setRemoveData({
+              callback: () => data.handlerMap.delete({ id: data.data.id }),
+              header: <Lsi lsi={{ cs: "Smazat položku?" }} />,
+              info: (
+                <Lsi
+                  lsi={{
+                    cs: `Opravdu chcete smazat položku${data.data.name ? ` "${data.data.name}"` : ""}?`,
+                  }}
+                />
+              ),
+            }),
+        };
+
+        if (compact) {
+          deleteItem.children = <Lsi lsi={{ cs: "Smazat" }} />;
+          items.push(deleteItem);
+        } else {
+          actionList.unshift(deleteItem);
+        }
 
         if (children) {
           const updateItem = {
@@ -247,9 +259,6 @@ const Crud = createVisualComponent({
           } else {
             actionList.unshift(updateItem);
           }
-        } else {
-          actionList.unshift(items.shift());
-          actionList[1].itemList = items;
         }
 
         return actionList;
