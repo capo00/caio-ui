@@ -168,6 +168,11 @@ function PlayersPage() {
 
 Bez `children` (form inputů) je `Crud` jen read-only tabulka (`readOnly` prop to i explicitně vynutí).
 
+Update i delete jsou u každého řádku vlastní viditelné ikony (ne schované v "..." menu) — `compact`
+prop obojí přesune do menu, pokud je řádků moc na to, aby se tam vešly čtyři ikony vedle sebe.
+Výběr řádků (checkboxy) odemkne hromadné mazání, které volá `entity/deleteMany({ idList })` a po
+úspěchu tabulku sám reloadne (`handlerMap.load(dtoIn)`), takže smazané řádky zmizí okamžitě.
+
 ### Image
 
 `<UiElements.Image>` — obyčejný `<img>` s `referrerPolicy="no-referrer"`. Nepotřebné pro `BinaryStore`
@@ -183,18 +188,19 @@ jako `Uu5Forms.Link` se zavíracím křížkem; `accept="image/*"` (bez čárky)
 ### BinaryProvider / useBinary
 
 `UiElements.BinaryProvider` / `UiElements.useBinary` -- už hotová dvojice z
-`CrudContext.create("binary")`, napojená na `binary/list|get|create|update|delete` z
+`CrudContext.create("binary")`, napojená na `binary/list|get|create|update|delete|deleteMany` z
 `caio-server`'s `BinaryStore.createApi()` (na rozdíl od `CrudContext.create(entity)` samotného se
 tahle dvojice nevolá, jen se importuje). `BinaryCrud` ji používá interně, ale jde použít i
 samostatně pro vlastní UI nad soubory (`<UiElements.BinaryProvider>{(dataList) => ...}</UiElements.BinaryProvider>`).
 
 ### BinaryCrud
 
-Hotová admin tabulka souborů nad `BinaryProvider` (sloupce: náhled/odkaz, název, velikost, datum,
-mime type; formulář na create/update používá `FormFile`). Před uploadem obrázek zmenší a převede
-na webp (`uu5imagingg01-tools`, peer dependency). Appka, která potřebuje vlastní pole navíc
-(např. tagy), si postaví vlastní `Crud`/`Crud.generate()` konfiguraci stejným způsobem, jakým je
-postavená tahle — `BinaryCrud` samo o sobě je záměrně obecné, ne rozšiřitelné přes props.
+Hotová admin tabulka souborů nad `BinaryProvider` (sloupce: náhled + odkaz *Stáhnout* -- u
+obrázků obojí, u ostatních typů jen odkaz --, název, velikost, datum, mime type; formulář na
+create/update používá `FormFile`). Před uploadem obrázek zmenší a převede na webp
+(`uu5imagingg01-tools`, peer dependency). Appka, která potřebuje vlastní pole navíc (např. tagy),
+si postaví vlastní `Crud`/`Crud.generate()` konfiguraci stejným způsobem, jakým je postavená
+tahle — `BinaryCrud` samo o sobě je záměrně obecné, ne rozšiřitelné přes props.
 
 ```javascript
 import { UiElements } from "caio-ui";
