@@ -176,7 +176,7 @@ const Crud = createVisualComponent({
     const [removeData, setRemoveData] = useState();
     const [displayData, setDisplayData] = useState();
 
-    const { state, data, handlerMap, pageSize } = dataList;
+    const { state, data, handlerMap, pageSize, dtoIn } = dataList;
 
     const onLoad = useCallback(
       ({ indexFrom, count }) => {
@@ -324,7 +324,16 @@ const Crud = createVisualComponent({
                   colorScheme: "negative",
                   onClick: (e) => {
                     setRemoveData({
-                      callback: () => handlerMap.deleteMany({ idList: selectedData.map(({ data }) => data.id) }),
+                      // useDataList's generic list-level transform only knows how to fold a
+                      // *single* item's result into the local list (by matching its id) -- a
+                      // bulk deleteMany({ idList }) call doesn't fit that shape, so nothing gets
+                      // removed locally on its own the way a single delete() does. Reloading
+                      // afterward (with the same dtoIn/filters that were last in effect) is the
+                      // straightforward fix.
+                      callback: async () => {
+                        await handlerMap.deleteMany({ idList: selectedData.map(({ data }) => data.id) });
+                        await handlerMap.load(dtoIn);
+                      },
                       header: <Lsi lsi={{ cs: "Smazat položky?" }} />,
                       info: (
                         <Lsi
