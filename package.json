@@ -10,6 +10,8 @@
     "uu5tilesg02-elements": "*",
     "uu5tilesg02-controls": "*",
     "uu5codekitg01": "*",
-    "uu5richtextg01-elements": "*"
+    "uu5richtextg01-elements": "*",
+    "uu5imagingg01": "*",
+    "uu5imagingg01-tools": "*"
   }
 }

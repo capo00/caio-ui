@@ -11,7 +11,8 @@ React komponenty postavené nad Unicorn **uu5g05**/uuSuite ekosystémem, navrže
   ```
   peerDependencies: uu5g05, uu5g05-elements, uu5g05-forms,
                     uu5tilesg02, uu5tilesg02-elements, uu5tilesg02-controls,
-                    uu5codekitg01, uu5richtextg01-elements
+                    uu5codekitg01, uu5richtextg01-elements,
+                    uu5imagingg01, uu5imagingg01-tools
   ```
 
 - Backend, který servíruje `caio-server`ovou konvenci (`/auth/*`, `<entity>/list|create|createMany|update|delete|deleteMany`).
@@ -169,7 +170,39 @@ Bez `children` (form inputů) je `Crud` jen read-only tabulka (`readOnly` prop t
 
 ### Image
 
-`<UiElements.Image>` — obyčejný `<img>` s `referrerPolicy="no-referrer"` (nutné pro obrázky z Google Drive/Photos, viz `BinaryStore`/`capo-google-disk`).
+`<UiElements.Image>` — obyčejný `<img>` s `referrerPolicy="no-referrer"`. Nepotřebné pro `BinaryStore`
+(Google Cloud Storage servíruje obsah přímo, žádný "no-referrer" quirk jako dřív Drive), ale
+neškodí to nechat pro obrázky z jiných zdrojů, které to vyžadují.
+
+### FormFile
+
+`Uu5Forms`-kompatibilní form input pro `BinaryStore`. Existující hodnota (string `uri`) se ukáže
+jako `Uu5Forms.Link` se zavíracím křížkem; `accept="image/*"` (bez čárky) přepne na
+`Uu5Imaging.ImageInput`; jinak obyčejný `Uu5Forms.File`. Vyžaduje peer dependency `uu5imagingg01`.
+
+### BinaryProvider / useBinary
+
+`UiElements.BinaryProvider` / `UiElements.useBinary` -- už hotová dvojice z
+`CrudContext.create("binary")`, napojená na `binary/list|get|create|update|delete` z
+`caio-server`'s `BinaryStore.createApi()` (na rozdíl od `CrudContext.create(entity)` samotného se
+tahle dvojice nevolá, jen se importuje). `BinaryCrud` ji používá interně, ale jde použít i
+samostatně pro vlastní UI nad soubory (`<UiElements.BinaryProvider>{(dataList) => ...}</UiElements.BinaryProvider>`).
+
+### BinaryCrud
+
+Hotová admin tabulka souborů nad `BinaryProvider` (sloupce: náhled/odkaz, název, velikost, datum,
+mime type; formulář na create/update používá `FormFile`). Před uploadem obrázek zmenší a převede
+na webp (`uu5imagingg01-tools`, peer dependency). Appka, která potřebuje vlastní pole navíc
+(např. tagy), si postaví vlastní `Crud`/`Crud.generate()` konfiguraci stejným způsobem, jakým je
+postavená tahle — `BinaryCrud` samo o sobě je záměrně obecné, ne rozšiřitelné přes props.
+
+```javascript
+import { UiElements } from "caio-ui";
+
+function FilesPage() {
+  return <UiElements.BinaryCrud />;
+}
+```
 
 ---
 
@@ -198,10 +231,6 @@ Stránka složená z editovatelných sekcí — in-place WYSIWYG editor pro uži
 Doporučený způsob implementace: postavit na `Dao`/`Crud` z `caio-server` (kolekce `eccPage`, `eccSection`) a use case handlery nad nimi doplnit ručně — konvence `list/create/update/delete` z `Crud` samotného nestačí (chybí pořadí sekcí, lock, before/after inserty).
 
 ---
-
-## capo-google-disk
-
-`Utils.image` — pomocné funkce pro práci s obrázky uloženými přes `caio-server`'s `BinaryStore` (soubory na Google Drive, `referrerPolicy="no-referrer"` v `Image`/`Photo` komponentách kvůli tomu, jak Drive servíruje soubory).
 
 ## uu5tilesg02-extension
 
