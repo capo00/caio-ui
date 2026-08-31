@@ -35,6 +35,25 @@ Viz [Known issues](#known-issues).
 
 ---
 
+## Texty (LSI)
+
+Všechny texty komponent `caio-ui` leží v `src/lsi/cs.json` a `src/lsi/en.json` a čtou se přes `src/lsi/import-lsi.js` — stejný tvar lazy LSI, jaký používá uu5g05 pro své vlastní texty. Do 2026-08-31 byly rozeseté natvrdo po komponentách jako `{ cs: "Smazat" }`, takže knihovna uměla jen česky.
+
+Appka do nich **nemá jak sáhnout zvenčí** a nemá to potřebovat: jsou to popisky tlačítek a dialogů `Crud`/`BinaryCrud`, ne obsah. Když appka potřebuje jiné znění, skládá si vlastní tabulku přes `Crud.generate()` (viz [Crud](#crud)) — což je stejná rada jako u vlastních sloupců.
+
+Struktura JSONu kopíruje moduly:
+
+```
+app.top.*            UiApp.Top
+elements.crud.*      UiElements.Crud
+elements.binaryCrud.* UiElements.BinaryCrud
+ecc.*                UiEcc
+```
+
+Přidání jazyka = nový `<lang>.json` **a** řádek v `IMPORT_BY_LANGUAGE` v `import-lsi.js` (proč ten výčet, viz `caio-devkit` README, 5.6).
+
+---
+
 ## UiApp
 
 Root wrapper appky a routing guard.

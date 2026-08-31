@@ -1,9 +1,12 @@
 //@@viewOn:imports
 import { createVisualComponent, Lsi, useRef, Utils } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
+import importLsi from "../lsi/import-lsi";
 import Config from "./config/config";
 import { usePage } from "./page-context";
 //@@viewOff:imports
+
+const LSI_PATH = ["ecc", "createPageButton"];
 
 const CreatePageButton = createVisualComponent({
   //@@viewOn:statics
@@ -39,7 +42,7 @@ const CreatePageButton = createVisualComponent({
           onCreate?.(new Utils.Event(pageObject));
         }}
       >
-        <Lsi lsi={{ cs: "Vytvořit stránku" }} />
+        <Lsi import={importLsi} path={[...LSI_PATH, "createPage"]} />
       </Uu5Elements.Button>
     );
     //@@viewOff:render

@@ -1,13 +1,16 @@
 //@@viewOn:imports
-import { createVisualComponent, createComponent, useCallback, useState, Lsi, Utils } from "uu5g05";
+import { createVisualComponent, createComponent, useCallback, useState, useLsi, Lsi, Utils } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
 import Uu5Forms from "uu5g05-forms";
 import Uu5TilesElements from "uu5tilesg02-elements";
 import Uu5CodeKit from "uu5codekitg01";
 import { withServerlessTable, ListBlock } from "../uu5tilesg02-extension";
+import importLsi from "../lsi/import-lsi";
 import Config from "./config/config";
 
 //@@viewOff:imports
+
+const LSI_PATH = ["elements", "crud"];
 function getSortFn(sort, code) {
   let fn;
   switch (typeof sort) {
@@ -176,6 +179,13 @@ const Crud = createVisualComponent({
     const [removeData, setRemoveData] = useState();
     const [displayData, setDisplayData] = useState();
 
+    // Tooltips and menu labels are plain strings on the uu5 action API, so these are read as
+    // values rather than rendered as <Lsi> elements. Everything that lands in JSX below keeps
+    // using <Lsi import={importLsi} path={...} /> instead.
+    const moreLsi = useLsi(importLsi, [...LSI_PATH, "more"]);
+    const deleteLsi = useLsi(importLsi, [...LSI_PATH, "delete"]);
+    const updateLsi = useLsi(importLsi, [...LSI_PATH, "update"]);
+
     const { state, data, handlerMap, pageSize, dtoIn } = dataList;
 
     const onLoad = useCallback(
@@ -195,12 +205,12 @@ const Crud = createVisualComponent({
         const items = [
           {
             icon: "uugdsstencil-it-json",
-            children: <Lsi lsi={{ cs: "Zobrazit data" }} />,
+            children: <Lsi import={importLsi} path={[...LSI_PATH, "displayData"]} />,
             onClick: () => setDisplayData(data.data),
           },
           {
             icon: "uugds-copy",
-            children: <Lsi lsi={{ cs: "Zkopírovat ID" }} />,
+            children: <Lsi import={importLsi} path={[...LSI_PATH, "copyId"]} />,
             onClick: () => Utils.Clipboard.write(data.data.id),
           },
         ];
@@ -208,7 +218,7 @@ const Crud = createVisualComponent({
         let actionList = [
           {
             icon: "uugds-dots-vertical",
-            tooltip: { cs: "Více" },
+            tooltip: moreLsi,
             itemList: items,
             iconOpen: null,
             iconClosed: null,
@@ -221,25 +231,30 @@ const Crud = createVisualComponent({
         // easy to miss it was there at all.
         const deleteItem = {
           icon: "uugds-delete",
-          tooltip: { cs: "Smazat" },
+          tooltip: deleteLsi,
           colorScheme: "negative",
           disabled: data.state === "pending",
           onClick: () =>
             setRemoveData({
               callback: () => data.handlerMap.delete({ id: data.data.id }),
-              header: <Lsi lsi={{ cs: "Smazat položku?" }} />,
-              info: (
+              header: <Lsi import={importLsi} path={[...LSI_PATH, "deleteItemHeader"]} />,
+              // Two keys rather than one with an optional name: a translator cannot reasonably
+              // be asked to make a single sentence read well both with and without the quoted
+              // name spliced into it.
+              info: data.data.name ? (
                 <Lsi
-                  lsi={{
-                    cs: `Opravdu chcete smazat položku${data.data.name ? ` "${data.data.name}"` : ""}?`,
-                  }}
+                  import={importLsi}
+                  path={[...LSI_PATH, "deleteNamedItemInfo"]}
+                  params={{ name: data.data.name }}
                 />
+              ) : (
+                <Lsi import={importLsi} path={[...LSI_PATH, "deleteItemInfo"]} />
               ),
             }),
         };
 
         if (compact) {
-          deleteItem.children = <Lsi lsi={{ cs: "Smazat" }} />;
+          deleteItem.children = <Lsi import={importLsi} path={[...LSI_PATH, "delete"]} />;
           items.push(deleteItem);
         } else {
           actionList.unshift(deleteItem);
@@ -248,13 +263,13 @@ const Crud = createVisualComponent({
         if (children) {
           const updateItem = {
             icon: "uugds-pencil",
-            tooltip: { cs: "Upravit" },
+            tooltip: updateLsi,
             disabled: data.state === "pending",
             onClick: () => setEditData({ callback: data.handlerMap.update, data: data.data }),
           };
 
           if (compact) {
-            updateItem.children = <Lsi lsi={{ cs: "Upravit" }} />;
+            updateItem.children = <Lsi import={importLsi} path={[...LSI_PATH, "update"]} />;
             items.unshift(updateItem);
           } else {
             actionList.unshift(updateItem);
@@ -263,21 +278,24 @@ const Crud = createVisualComponent({
 
         return actionList;
       },
-      [disabled],
+      // The three lsi values are in here so switching the language re-creates the actions --
+      // they are captured in the closure, so without them the tooltips would keep the text
+      // that was current when the callback was last created.
+      [disabled, compact, children, moreLsi, deleteLsi, updateLsi],
     );
 
     let actionList;
     if (children && !readOnly) {
       actionList = [
         {
-          children: <Lsi lsi={{ cs: "Vytvořit" }} />,
+          children: <Lsi import={importLsi} path={[...LSI_PATH, "create"]} />,
           icon: "uugds-plus",
           [handlerMap.createMany ? "onLabelClick" : "onClick"]: () => setEditData({ callback: handlerMap.create }),
           colorScheme: "primary",
           significance: "common",
           itemList: handlerMap.createMany ? [
             {
-              children: <Lsi lsi={{ cs: "Hromadně" }} />,
+              children: <Lsi import={importLsi} path={[...LSI_PATH, "createMany"]} />,
               icon: "uugds-plus",
               onClick: () => setManyData({ callback: handlerMap.createMany }),
             },
@@ -320,7 +338,7 @@ const Crud = createVisualComponent({
               : (selectedData) => [
                 {
                   icon: "uugds-delete",
-                  children: "Delete",
+                  children: <Lsi import={importLsi} path={[...LSI_PATH, "delete"]} />,
                   colorScheme: "negative",
                   onClick: (e) => {
                     setRemoveData({
@@ -334,14 +352,8 @@ const Crud = createVisualComponent({
                         await handlerMap.deleteMany({ idList: selectedData.map(({ data }) => data.id) });
                         await handlerMap.load(dtoIn);
                       },
-                      header: <Lsi lsi={{ cs: "Smazat položky?" }} />,
-                      info: (
-                        <Lsi
-                          lsi={{
-                            cs: `Opravdu chcete smazat položky?`,
-                          }}
-                        />
-                      ),
+                      header: <Lsi import={importLsi} path={[...LSI_PATH, "deleteItemsHeader"]} />,
+                      info: <Lsi import={importLsi} path={[...LSI_PATH, "deleteItemsInfo"]} />,
                     });
                   },
                 },
@@ -353,7 +365,7 @@ const Crud = createVisualComponent({
 
         {children && !!editData && (
           <FormModal
-            header={<Lsi lsi={{ cs: editData?.data ? "Upravit" : "Vytvořit" }} />}
+            header={<Lsi import={importLsi} path={[...LSI_PATH, editData?.data ? "updateHeader" : "create"]} />}
             open={!!editData}
             onClose={() => setEditData()}
             onSubmit={async (e) => {
@@ -377,7 +389,7 @@ const Crud = createVisualComponent({
 
         {manyData && (
           <FormModal
-            header={<Lsi lsi={{ cs: "Vytvořit hromadně" }} />}
+            header={<Lsi import={importLsi} path={[...LSI_PATH, "createManyHeader"]} />}
             open={!!manyData}
             onClose={() => setManyData()}
             onSubmit={async (e) => {
@@ -400,7 +412,7 @@ const Crud = createVisualComponent({
 
         {displayData && (
           <Uu5Elements.Modal
-            header={<Lsi lsi={{ cs: "Data" }} />}
+            header={<Lsi import={importLsi} path={[...LSI_PATH, "dataHeader"]} />}
             open={!!displayData}
             onClose={() => setDisplayData()}
           >
@@ -423,12 +435,12 @@ const Crud = createVisualComponent({
           actionDirection="horizontal"
           actionList={[
             {
-              children: <Lsi lsi={{ cs: "Zrušit" }} />,
+              children: <Lsi import={importLsi} path={[...LSI_PATH, "cancel"]} />,
               onClick: () => setRemoveData(),
               significance: "distinct",
             },
             {
-              children: <Lsi lsi={{ cs: "Smazat" }} />,
+              children: <Lsi import={importLsi} path={[...LSI_PATH, "delete"]} />,
               onClick: (e) => {
                 removeData.callback();
                 setRemoveData();

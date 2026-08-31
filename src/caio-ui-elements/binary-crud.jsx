@@ -3,12 +3,15 @@ import { createVisualComponent, Lsi } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
 import Uu5Forms from "uu5g05-forms";
 import Uu5ImagingTools from "uu5imagingg01-tools";
+import importLsi from "../lsi/import-lsi";
 import Config from "./config/config";
 import Crud from "./crud";
 import Image from "./image";
 import FormFile from "./form-file";
 import { BinaryProvider } from "./binary-context";
 //@@viewOff:imports
+
+const LSI_PATH = ["elements", "binaryCrud"];
 
 //@@viewOn:helpers
 function Bytes({ value, roundingPosition = -1 }) {
@@ -30,10 +33,12 @@ function Bytes({ value, roundingPosition = -1 }) {
 
 const CONFIG = {
   file: {
-    label: { cs: "Soubor", en: "File" },
-    // download is a same-origin-only hint per the fetch/HTML spec -- a cross-origin GCS uri
-    // (storage.googleapis.com) ignores it and just opens the file, so target="_blank" is what
-    // actually keeps the table page from navigating away.
+    label: { import: importLsi, path: [...LSI_PATH, "file"] },
+    // The file name and extension come from the server: caio-server stores every object with a
+    // Content-Disposition carrying its name, so the browser saves it correctly even though the
+    // uri is a bare UUID on a cross-origin host. The `download` attribute cannot do that job --
+    // per the fetch/HTML spec it is a same-origin-only hint, and storage.googleapis.com ignores
+    // it -- it is kept only for the case where a uri ever becomes same-origin.
     output: (value, item) => {
       if (!item.data.uri) return undefined;
       return (
@@ -42,7 +47,7 @@ const CONFIG = {
             <Image src={item.data.uri} alt={item.data.name} height={32} />
           )}
           <Uu5Elements.Link href={item.data.uri} download={item.data.name} target="_blank">
-            <Lsi lsi={{ cs: "Stáhnout", en: "Download" }} />
+            <Lsi import={importLsi} path={[...LSI_PATH, "download"]} />
           </Uu5Elements.Link>
         </div>
       );
@@ -54,23 +59,23 @@ const CONFIG = {
     },
   },
   name: {
-    label: { cs: "Název", en: "Name" },
+    label: { import: importLsi, path: [...LSI_PATH, "name"] },
     sort: true,
     input: { Component: Uu5Forms.FormText },
   },
   size: {
-    label: { cs: "Velikost", en: "Size" },
+    label: { import: importLsi, path: [...LSI_PATH, "size"] },
     output: (value) => <Bytes value={value} />,
     columnProps: { maxWidth: "m", horizontalAlignment: "right" },
     sort: true,
   },
   mts: {
-    label: { cs: "Datum", en: "Date" },
+    label: { import: importLsi, path: [...LSI_PATH, "date"] },
     output: (value, item) => <Uu5Elements.DateTime value={item.data.sys.mts} />,
     sort: (_, __, a, b) => a.data.sys.mts.localeCompare(b.data.sys.mts),
   },
   mimeType: {
-    label: { cs: "Typ", en: "Type" },
+    label: { import: importLsi, path: [...LSI_PATH, "type"] },
   },
 };
 

@@ -1,0 +1,49 @@
+{
+  "app": {
+    "top": {
+      "signedInUser": "Přihlášený uživatel",
+      "logout": "Odhlásit"
+    }
+  },
+  "elements": {
+    "crud": {
+      "create": "Vytvořit",
+      "createMany": "Hromadně",
+      "createManyHeader": "Vytvořit hromadně",
+      "update": "Upravit",
+      "updateHeader": "Upravit",
+      "delete": "Smazat",
+      "cancel": "Zrušit",
+      "more": "Více",
+      "displayData": "Zobrazit data",
+      "dataHeader": "Data",
+      "copyId": "Zkopírovat ID",
+      "deleteItemHeader": "Smazat položku?",
+      "deleteItemInfo": "Opravdu chcete smazat položku?",
+      "deleteNamedItemInfo": "Opravdu chcete smazat položku „${name}“?",
+      "deleteItemsHeader": "Smazat položky?",
+      "deleteItemsInfo": "Opravdu chcete smazat vybrané položky?"
+    },
+    "binaryCrud": {
+      "header": "Soubory",
+      "file": "Soubor",
+      "download": "Stáhnout",
+      "name": "Název",
+      "size": "Velikost",
+      "date": "Datum",
+      "type": "Typ"
+    }
+  },
+  "ecc": {
+    "sectionEditable": {
+      "updateUu5String": "Upravit uu5String",
+      "deleteSectionHeader": "Smazat sekci?",
+      "deleteSectionInfo": "Data sekce nelze obnovit",
+      "delete": "Smazat",
+      "cancel": "Zrušit"
+    },
+    "createPageButton": {
+      "createPage": "Vytvořit stránku"
+    }
+  }
+}

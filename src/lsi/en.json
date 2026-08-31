@@ -1,0 +1,49 @@
+{
+  "app": {
+    "top": {
+      "signedInUser": "Signed-in user",
+      "logout": "Sign out"
+    }
+  },
+  "elements": {
+    "crud": {
+      "create": "Create",
+      "createMany": "In bulk",
+      "createManyHeader": "Create in bulk",
+      "update": "Edit",
+      "updateHeader": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "more": "More",
+      "displayData": "Show data",
+      "dataHeader": "Data",
+      "copyId": "Copy ID",
+      "deleteItemHeader": "Delete item?",
+      "deleteItemInfo": "Do you really want to delete this item?",
+      "deleteNamedItemInfo": "Do you really want to delete the item “${name}”?",
+      "deleteItemsHeader": "Delete items?",
+      "deleteItemsInfo": "Do you really want to delete the selected items?"
+    },
+    "binaryCrud": {
+      "header": "Files",
+      "file": "File",
+      "download": "Download",
+      "name": "Name",
+      "size": "Size",
+      "date": "Date",
+      "type": "Type"
+    }
+  },
+  "ecc": {
+    "sectionEditable": {
+      "updateUu5String": "Edit uu5String",
+      "deleteSectionHeader": "Delete section?",
+      "deleteSectionInfo": "Section data cannot be restored",
+      "delete": "Delete",
+      "cancel": "Cancel"
+    },
+    "createPageButton": {
+      "createPage": "Create page"
+    }
+  }
+}

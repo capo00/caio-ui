@@ -2,9 +2,12 @@
 import { createVisualComponent, Utils, useStickyTop, useRoute, useLsi, useState, useScreenSize, Lsi } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
 import OcAuth from "../caio-ui-auth";
+import importLsi from "../lsi/import-lsi";
 import Config from "./config/config";
 import anonymousUri from "./assets/anonymous.png";
 //@@viewOff:imports
+
+const LSI_PATH = ["app", "top"];
 
 function updateHref({ href, params, itemList, ...item }, setRoute) {
   if (itemList) item.itemList = itemList.map((it) => updateHref(it, setRoute));
@@ -17,7 +20,7 @@ function updateHref({ href, params, itemList, ...item }, setRoute) {
 
 function Photo({ screenSize }) {
   const session = OcAuth.useSession();
-  const title = useLsi({ cs: "Přihlášený uživatel" });
+  const title = useLsi(importLsi, [...LSI_PATH, "signedInUser"]);
   const isSmall = screenSize === "xs";
 
   const [uri, setUri] = useState(session.identity.photo);
@@ -57,7 +60,7 @@ function getLoginButton(session, screenSize, item) {
     itemList.unshift({ icon: "uugds-account", children: session.identity.identity });
     itemList.push({
       icon: "uugds-log-out",
-      children: <Lsi lsi={{ cs: "Odhlásit" }} />,
+      children: <Lsi import={importLsi} path={[...LSI_PATH, "logout"]} />,
       onClick: () => session.logout(),
     });
   }

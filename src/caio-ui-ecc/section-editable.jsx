@@ -4,9 +4,12 @@ import Uu5Elements from "uu5g05-elements";
 import Uu5Forms from "uu5g05-forms";
 import Uu5RichTextElements from "uu5richtextg01-elements";
 import Uu5CodeKit from "uu5codekitg01";
+import importLsi from "../lsi/import-lsi";
 import Config from "./config/config";
 
 //@@viewOff:imports
+
+const LSI_PATH = ["ecc", "sectionEditable"];
 
 function Editor({ value, onBlur, ...props }) {
   const [v, setV] = useState(value);
@@ -31,7 +34,7 @@ function UpdateUu5StringModal({ value, onSubmit, onCancel }) {
       <Uu5Elements.Modal
         open
         onClose={onCancel}
-        header={<Lsi lsi={{ cs: "Upravit uu5String" }} />}
+        header={<Lsi import={importLsi} path={[...LSI_PATH, "updateUu5String"]} />}
         footer={
           <Uu5Elements.Grid templateColumns="auto auto" justifyContent="end">
             <Uu5Forms.CancelButton onClick={onCancel} />
@@ -53,17 +56,17 @@ function RemoveSectionDialog({ onConfirm, onCancel }) {
     <Uu5Elements.Dialog
       open
       onClose={onCancel}
-      header={<Lsi lsi={{ cs: "Smazat sekci?" }} />}
+      header={<Lsi import={importLsi} path={[...LSI_PATH, "deleteSectionHeader"]} />}
       icon={<Uu5Elements.Svg code="uugdssvg-svg-delete" />}
-      info={<Lsi lsi={{ cs: "Data sekce nelze obnovit" }} />}
+      info={<Lsi import={importLsi} path={[...LSI_PATH, "deleteSectionInfo"]} />}
       actionDirection="horizontal"
       actionList={[
         {
-          children: <Lsi lsi={{ cs: "Zrušit" }} />,
+          children: <Lsi import={importLsi} path={[...LSI_PATH, "cancel"]} />,
           onClick: onCancel,
         },
         {
-          children: <Lsi lsi={{ cs: "Smazat" }} />,
+          children: <Lsi import={importLsi} path={[...LSI_PATH, "delete"]} />,
           onClick: onConfirm,
           colorScheme: "negative",
           significance: "highlighted",
@@ -160,7 +163,7 @@ const SectionEditable = createVisualComponent({
                 {
                   collapsed: true,
                   icon: "uugdsstencil-it-div",
-                  children: <Lsi lsi={{ cs: "Upravit uu5String" }} />,
+                  children: <Lsi import={importLsi} path={[...LSI_PATH, "updateUu5String"]} />,
                   onClick: async () => {
                     await dto.handlerMap.lock();
                     setUpdateModal(true);
@@ -170,7 +173,7 @@ const SectionEditable = createVisualComponent({
                   collapsed: true,
                   icon: "uugds-delete",
                   colorScheme: "negative",
-                  children: <Lsi lsi={{ cs: "Smazat" }} />,
+                  children: <Lsi import={importLsi} path={[...LSI_PATH, "delete"]} />,
                   onClick: () => setRemoveDialog(true),
                 },
               ]}
