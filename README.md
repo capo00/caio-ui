@@ -33,6 +33,22 @@ import UiApp from "caio-ui/src/caio-ui-app";
 
 Viz [Known issues](#known-issues).
 
+## Vývoj: jak se změna dostane do appky
+
+Appky konzumují `caio-ui` jako **lokální tarball** (`"caio-ui": "file:../../caio-architecture/caio-ui/dist/caio-ui-0.1.0.tgz"`),
+takže po každé změně ve `src/` je potřeba přebalit **a přeinstalovat**:
+
+```bash
+cd caio-architecture/caio-ui && npm pack --pack-destination dist
+cd ../../<appka>/client && rm -rf node_modules/caio-ui \
+  && npm install --no-save --force file:../../caio-architecture/caio-ui/dist/caio-ui-0.1.0.tgz
+```
+
+Samotné `npm install` **nestačí**: verze v `package.json` se nemění, takže npm vezme balíček
+z cache a novou verzi souborů ignoruje (ověřeno — nový soubor v tarballu se do
+`node_modules` nedostal). Proto to `rm -rf` + `--force`. Až bude `caio-ui` v registry,
+padá to celé.
+
 ---
 
 ## Texty (LSI)
@@ -61,18 +77,33 @@ Root wrapper appky a routing guard.
 | Export | Desc |
 |---|---|
 | `SpaProvider` (`{ cmdPrefix = "/auth", languageList = ["cs"] }`) | Obalí appku providery: `AppBackgroundProvider`, `LanguageListProvider`, `LanguageProvider`, `UiAuth.SessionProvider` (dostane `cmdPrefix`), `RouteProvider`. `languageList` říká, které jazyky appka nabízí — s víc než jedním má `Uu5Elements.LanguageSelector` z čeho vybírat a LSI objekty se čtou v obou jazycích. |
-| `Spa` | Vizuální root: `ErrorBoundary` (fallback `SpaError`) + `Uu5Elements.ModalBus` + `Uu5Elements.AlertBus`. |
+| `Spa` (`{ top, footer, main, errorFallback }`) | Vizuální root: `ErrorBoundary` (fallback `SpaError`) + `Uu5Elements.ModalBus` + `Uu5Elements.AlertBus`. Když dostane `top` nebo `footer`, složí navíc celý rám stránky přes `Page` — appka pak nemá vlastní komponentu na hlavičku a patičku. Bez nich renderuje jen `children` (jako dřív). |
+| `Page` (`{ top, sticky, footer, maxWidth, padding, fullHeight }`) | Rám stránky: horní lišta + `<main>` + patička. Viz níž. |
+| `useTop()` | `{ stuck, height }` horní lišty. Pro obsah stránky, který má reagovat na to, že lišta dosedla. |
 | `withRoute(Component, { profileList })` | HOC pro route guard. Bez `profileList` prostě vyrenderuje `Component`. S `profileList` čte `UiAuth.useSession()`: `pending` → `null`, `notAuthenticated` → `UiAuth.Unauthenticated`, `authenticated` bez shody profilu → `UiAuth.Unauthorized`, jinak `Component`. |
-| `Top` | Horní lišta appky — logo, `menuList`, a automaticky přidané login/identity tlačítko (fotka + dropdown s `identity`/logout, když je uživatel přihlášený; „Přihlásit se“, když ne). |
+
+**`Top` se schválně NEEXPORTUJE.** Lišta se nastavuje výhradně přes prop `top` na `Page`/`Spa`,
+aby na ni byla v celém stacku jedna cesta.
 
 ```javascript
 import { UiApp } from "caio-ui";
+import Uu5Elements from "uu5g05-elements";
 
 function App() {
   return (
     <UiApp.SpaProvider cmdPrefix="/auth">
-      <UiApp.Spa>
-        <UiApp.Top logoUri="/logo.svg" menuList={[{ children: "Hráči", href: "/players" }]} />
+      <UiApp.Spa
+        top={{
+          logo: { uri: "/logo.svg", href: "#hero", tooltip: "Domů" },
+          children: <Uu5Elements.Header title="Roubený ráj" subtitle="Český ráj" />,
+          menu: { itemList: [{ children: "Galerie", href: "#galerie" }] },
+          cssBackground: "#1E3E23",
+          cssColor: "#FBF9F0",
+          maxWidth: 1140,
+        }}
+        footer={<Footer />}
+        main={{ padding: false }}
+      >
         <Router />
       </UiApp.Spa>
     </UiApp.SpaProvider>
@@ -82,6 +113,66 @@ function App() {
 // stránka dostupná jen profilům Admin/Manager
 const AdminPage = UiApp.withRoute(PlayersPage, { profileList: ["Admin", "Manager"] });
 ```
+
+### `top` — props horní lišty
+
+| Prop | Typ | Default | Co dělá |
+|---|---|---|---|
+| `logo` | node \| uri \| `{ uri, href, target, onClick, tooltip }` | — | Node = vlastní blok. `href` začínající `#` scrolluje na kotvu. |
+| `children` | node \| `({ stuck }) => node` | — | Volný obsah lišty. Typicky `Uu5Elements.Header` s `title` + `subtitle`. |
+| `menu` | `{ itemList, alignment }` | — | `itemList` = položky `Uu5Elements.ActionGroup` (props `Button`/`Dropdown`) navíc s `href`. `href` s `#` = kotva, jinak routa. |
+| `sticky` | `bool` \| `"always"` \| `"onScrollUp"` | `true` = `"onScrollUp"` | Lepení k horní hraně (`withStickyTop`). Prop se zadává na `Page`/`Spa`, ne do `top`. Viz níž. |
+| `transparent` | `bool` \| `({ stuck }) => bool` | `false` | Průhledné pozadí lišty (např. nad hero fotkou). |
+| `cssBackground` | `string` \| `({ stuck }) => string` | z `colorScheme` | Pozadí lišty jako CSS. Přebíjí `colorScheme`. |
+| `cssColor` | `string` \| `({ stuck }) => string` | z `colorScheme` | Barva textu. |
+| `colorScheme` | GDS colorScheme \| fn | `"building"` | Barvy z GDS palety (`Shape.background.full.<scheme>.highlighted`). |
+| `maxWidth` | `unit` \| fn | — | Šířka vycentrovaného obsahu lišty. |
+
+**Reakce na dosednutí:** každý prop vzhledu bere i funkci `({ stuck }) => hodnota`; `children`
+můžou být render-prop se stejným argumentem; a kdekoli v obsahu stránky je k dispozici
+`UiApp.useTop()`. Při dosednutí lišta sama přidá stín (GDS `elevationUpper`).
+
+**Chování při scrollu (`sticky`):** výchozí je `"onScrollUp"` — lišta při scrollu dolů
+odjede nad hranu viewportu a vrátí se, jakmile uživatel scrolluje nahoru. Obsah tak má
+při čtení celou výšku okna a navigace je na dosah jedním gestem. `"always"` = lišta je
+vidět pořád, `false` = vůbec se nelepí.
+
+Jak se to schovává: `withStickyTop` nemění `display` ani třídu, jen v `style` odečte od
+`top` výšku lišty (`top: -56px`) a zpátky na `top: 0` ji vrátí přechodem. Praktické
+důsledky:
+
+- `elementRef` z HOC musí sedět na tomtéž `<div>`, který lištu kreslí — z něj se měří
+  výška, o kterou se schovává. Funguje to i s `render: false` (ten vypíná jen pomocné
+  prvky HOC, ne pozicování).
+- Vlastní `transition` v `className` lišty by se neuplatnil — HOC posílá inline
+  `transition: top ...` a inline zápis přebije třídu. `Top` proto svoje přechody
+  (podklad, barva, stín) do toho inline stylu **připojuje**, ne aby je psal do třídy.
+- Odjetá lišta zůstává v DOM a dá se do ní vrátit tabulátorem. `Top` proto při fokusu
+  nad horní hranou sroluje o pixel nahoru, čímž si HOC vyrobí směr „up" a lištu vysune.
+- `stuck` (a tedy i `useTop()`) znamená „scrollovali jsme za lištu", ne „lišta je vidět".
+  Odjetá lišta je pořád `stuck`, jen ji není kam vykreslit.
+- Skoky na kotvu se odsazují přes `scroll-margin-block-start` cílové sekce. Při skoku
+  dolů lišta odjede, takže odsazení není potřeba; při skoku nahoru zůstane vidět a bez
+  toho odsazení překryje prvních ~56 px sekce.
+
+**Responzivita:** menu staví na `Uu5Elements.ActionGroup`, který položky měří a podle šířky
+kontejneru je sbaluje `plný popisek → ikona → menu`. Na mobilu a tabletu tedy nav položky
+spadnou pod jedno tlačítko s ikonou `uugds-menu` bez jakéhokoli nastavování. Položka
+s `collapsed: "never"` zůstane vidět vždy (typicky hlavní CTA).
+
+### `main` / `Page` — props obsahu
+
+| Prop | Typ | Default | Co dělá |
+|---|---|---|---|
+| `maxWidth` | `unit` | — | Vycentrovaná šířka `<main>`. |
+| `padding` | `bool` \| `unit` | `true` | `true` = výchozí odsazení appky (mobil menší), `false`/`0` = žádné (web si ho řeší v sekcích). |
+| `fullHeight` | `bool` | `true` | `min-height: 100vh` na rámu, takže patička drží dole i u krátkého obsahu. |
+
+### Identita v liště
+
+Login/identity tlačítko se v současné verzi **nepřidává**. Do `Top` se vrátí až s `displayIdentity`
+propem — dřív se přidávalo vždy, když `Top` dostal `menuList`, což je pro veřejný web bez
+přihlašování cizí prvek.
 
 ---
 
@@ -292,4 +383,5 @@ Reprodukované při rozjezdu appky na tomhle stacku. Kontext a plán úprav na s
 - **Chybí `exports` mapa.** Submodul se musí importovat jako `caio-ui/src/caio-ui-app` místo `caio-ui/app`.
 - **`config.js` čte `process.env.OUTPUT_NAME`**, které `createViteConfig` v `caio-devkit` nedefinuje → `ReferenceError: process is not defined`. Appka si ho musí dodefinovat sama.
 - **`UiEcc` vyžaduje backend, který `caio-server` nedodává.** Viz sekce [UiEcc](#uiecc) — bez vlastní implementace `eccPage`/`eccSection` use cases appka spadne na 404 při prvním renderu `Page`.
+- **`stickyTopStuck` z `uu5g05.withStickyTop` nefunguje, když stránku scrolluje okno** (zjištěno 2026-09-01, uu5g05 1.50.8, Chrome 152). Hook svůj měřicí stub pozicuje přes CSS `anchor()` a jméno ukotvení nastavuje **jen když je scroll kontejner `HTMLElement`**. U běžné webové stránky je scroll kontejner `window`, ukotvení se nenajde, stub spadne na fallback `top: -1000000px` s výškou milion pixelů — takže viewport protíná vždy, `isIntersecting` je pořád `true` a `stuck` nikdy nepřepne. Důsledek: nefunguje ani nativní stín při dosednutí. `Top` si proto dosednutí detekuje sám (nulový sentinel nad lištou + scroll listener) a stín kreslí ze stejného GDS efektu (`elevationUpper`). V uu5 appkách se scrollovacím divem to problém není.
 - ~~**`UiAuth.Unauthenticated` volá nedefinované `register()`.**~~ **Opraveno 2026-08-25** — tlačítko je smazané, registrace se dělá na přihlašovací stránce.
