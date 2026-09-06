@@ -14,27 +14,35 @@
     <main class="card" hidden>
       <h1 id="app-name">Přihlášení</h1>
 
-      <div id="providers" class="providers"></div>
+      <!-- data-modes lists the modes a node belongs to; login.js shows and hides by it.
+           Modes: login | register | forgot | reset. -->
+      <div id="providers" class="providers" data-modes="login register"></div>
 
-      <div id="separator" class="separator" hidden><span>nebo</span></div>
+      <div id="separator" class="separator" data-modes="login register" hidden><span>nebo</span></div>
+
+      <p id="intro" class="hint" data-modes="forgot reset" hidden></p>
 
       <form id="form" novalidate>
-        <div class="row register-only" hidden>
+        <div class="row" data-modes="register" hidden>
           <label for="firstName">Jméno</label>
           <input id="firstName" name="firstName" autocomplete="given-name" />
         </div>
-        <div class="row register-only" hidden>
+        <div class="row" data-modes="register" hidden>
           <label for="surname">Příjmení</label>
           <input id="surname" name="surname" autocomplete="family-name" />
         </div>
-        <div class="row">
+        <div class="row" data-modes="login register forgot">
           <label for="email">E-mail</label>
           <input id="email" name="email" type="email" autocomplete="email" required />
         </div>
-        <div class="row">
+        <div class="row" data-modes="login register reset">
           <label for="password">Heslo</label>
           <input id="password" name="password" type="password" required />
-          <p id="password-hint" class="hint register-only" hidden></p>
+          <p id="password-hint" class="hint" data-modes="register reset" hidden></p>
+        </div>
+        <div class="row" data-modes="reset" hidden>
+          <label for="password2">Heslo znovu</label>
+          <input id="password2" name="password2" type="password" autocomplete="new-password" />
         </div>
 
         <p id="message" class="message" role="alert" hidden></p>
@@ -42,9 +50,17 @@
         <button id="submit" type="submit" class="primary">Přihlásit se</button>
       </form>
 
-      <p class="switch">
+      <p class="switch" data-modes="login" hidden>
+        <button id="forgot" type="button" class="link">Zapomenuté heslo?</button>
+      </p>
+
+      <p class="switch" data-modes="login register">
         <span id="switch-text">Nemáte účet?</span>
         <button id="switch" type="button" class="link">Registrovat se</button>
+      </p>
+
+      <p class="switch" data-modes="forgot reset" hidden>
+        <button id="back" type="button" class="link">Zpět na přihlášení</button>
       </p>
     </main>
 

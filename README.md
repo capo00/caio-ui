@@ -207,6 +207,7 @@ Jak se chová:
 - Jméno a heslo: `POST /auth/login` nebo `/auth/register`, a stránka pak sama pošle `postMessage({ type: "auth", identity })` openerovi a zavře se — což `SessionProvider` už poslouchá.
 - Otevřená přímo v tabu (bez openera) po úspěchu přesměruje na `/`.
 - `/login.html`, ne `/login`: `caio-server` odpovídá na cesty bez přípony `index.html`, takže `/login` by vrátilo appku.
+- **Reset hesla.** Stránka má čtyři režimy — `login`, `register`, `forgot` a `reset` — a přepíná je podle atributu `data-modes` na jednotlivých blocích. Odkaz „Zapomenuté heslo?“ se ukáže jen tehdy, když `GET /auth/config` hlásí `passwordResetEnabled` (tedy když má deployment nakonfigurovanou poštu), takže se nikdy nenabízí něco, co nemůže fungovat. `forgot` pošle `POST /auth/password/reset-request` a odpoví vždy stejně, ať e-mail známe nebo ne — server to neprozradí, tak ani stránka. Do režimu `reset` se přijde odkazem z mailu (`/login.html?reset=<token>`); po úspěšném `POST /auth/password/reset` **nepřijde cookie** (přístup do schránky není totéž co sezení u důvěryhodného zařízení), takže stránka přepne zpátky na `login`. Token se hned po použití vymaže z URL přes `history.replaceState`, aby nezůstal v historii ani v `Referer`.
 
 Appka, která chce vlastní vzhled, si položí vlastní `client/public/login.html` — devkit svoji kopii v tom případě nevkládá.
 

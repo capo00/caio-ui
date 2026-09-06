@@ -58,10 +58,30 @@
     submit: document.getElementById("submit"),
     switch: document.getElementById("switch"),
     switchText: document.getElementById("switch-text"),
+    forgot: document.getElementById("forgot"),
+    back: document.getElementById("back"),
+    intro: document.getElementById("intro"),
+    password2: document.getElementById("password2"),
   };
 
-  var registering = false;
+  // login | register | forgot | reset. `reset` is only reachable with a token in the
+  // query string -- it is the second half of the flow that starts in `forgot`.
+  var mode = "login";
   var passwordRule = null;
+  var passwordResetEnabled = false;
+  var resetToken = null;
+
+  var SUBMIT_LABEL = {
+    login: "Přihlásit se",
+    register: "Registrovat se",
+    forgot: "Poslat odkaz",
+    reset: "Nastavit heslo",
+  };
+
+  var INTRO = {
+    forgot: "Zadejte e-mail, kterým se přihlašujete. Pošleme na něj odkaz pro nastavení nového hesla.",
+    reset: "Zvolte si nové heslo.",
+  };
 
   function setMessage(text, kind) {
     el.message.textContent = text || "";
@@ -70,15 +90,22 @@
   }
 
   function setMode(next) {
-    registering = next;
-    el.submit.textContent = registering ? "Registrovat se" : "Přihlásit se";
-    el.switchText.textContent = registering ? "Už máte účet?" : "Nemáte účet?";
-    el.switch.textContent = registering ? "Přihlásit se" : "Registrovat se";
-    el.password.autocomplete = registering ? "new-password" : "current-password";
-    Array.prototype.forEach.call(document.querySelectorAll(".register-only"), function (node) {
-      // The password hint only has something to say once there is a rule to show.
-      node.hidden = !registering || (node === el.passwordHint && !el.passwordHint.textContent);
+    mode = next;
+    el.submit.textContent = SUBMIT_LABEL[mode];
+    el.switchText.textContent = mode === "register" ? "Už máte účet?" : "Nemáte účet?";
+    el.switch.textContent = mode === "register" ? "Přihlásit se" : "Registrovat se";
+    el.password.autocomplete = mode === "login" ? "current-password" : "new-password";
+    el.intro.textContent = INTRO[mode] || "";
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-modes]"), function (node) {
+      var belongs = node.getAttribute("data-modes").split(" ").indexOf(mode) !== -1;
+      // Two nodes have something to say only sometimes: the password hint needs a rule
+      // to show, and the "forgot password" link needs the deployment to support it.
+      if (node === el.passwordHint) belongs = belongs && Boolean(el.passwordHint.textContent);
+      if (node === el.forgot.parentNode) belongs = belongs && passwordResetEnabled;
+      node.hidden = !belongs;
     });
+
     setMessage("");
   }
 
@@ -150,48 +177,92 @@
     window.location.href = "/";
   }
 
+  async function post(path, body) {
+    var response = await fetch(CMD_PREFIX + path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+    var payload = await response.json().catch(function () {
+      return null;
+    });
+    return { ok: response.ok, status: response.status, payload: payload };
+  }
+
   async function submit(event) {
     event.preventDefault();
 
     var email = el.email.value.trim();
     var password = el.password.value;
+    var body;
+    var path;
+    var fallbackMessage;
 
-    if (!email || !password) return setMessage("Vyplňte e-mail a heslo.");
-
-    if (registering) {
-      var problem = localPasswordProblem(password);
-      if (problem) return setMessage(problem);
-    }
-
-    var body = { email: email, password: password };
-    if (registering) {
-      body.firstName = el.firstName.value.trim();
-      body.surname = el.surname.value.trim();
+    if (mode === "forgot") {
+      if (!email) return setMessage("Vyplňte e-mail.");
+      path = "/password/reset-request";
+      body = { email: email };
+      fallbackMessage = "Odeslání se nepovedlo";
+    } else if (mode === "reset") {
+      if (!password) return setMessage("Vyplňte nové heslo.");
+      if (password !== el.password2.value) return setMessage("Hesla se neshodují.");
+      var resetProblem = localPasswordProblem(password);
+      if (resetProblem) return setMessage(resetProblem);
+      path = "/password/reset";
+      body = { token: resetToken, password: password };
+      fallbackMessage = "Nastavení hesla se nepovedlo";
+    } else {
+      if (!email || !password) return setMessage("Vyplňte e-mail a heslo.");
+      if (mode === "register") {
+        var problem = localPasswordProblem(password);
+        if (problem) return setMessage(problem);
+      }
+      path = mode === "register" ? "/register" : "/login";
+      body = { email: email, password: password };
+      if (mode === "register") {
+        body.firstName = el.firstName.value.trim();
+        body.surname = el.surname.value.trim();
+      }
+      fallbackMessage = "Přihlášení se nepovedlo";
     }
 
     el.submit.disabled = true;
     setMessage("");
 
     try {
-      var response = await fetch(CMD_PREFIX + (registering ? "/register" : "/login"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body),
-      });
-      var payload = await response.json().catch(function () {
-        return null;
-      });
+      var result = await post(path, body);
 
-      if (!response.ok) {
-        return setMessage(errorMessage(payload, "Přihlášení se nepovedlo (" + response.status + ")."));
+      if (!result.ok) {
+        return setMessage(errorMessage(result.payload, fallbackMessage + " (" + result.status + ")."));
       }
-      done(payload && payload.identity);
+
+      if (mode === "forgot") {
+        // Deliberately the same answer whether the address is registered or not -- the
+        // server does not say either, so neither does the page.
+        return setMessage("Pokud e-mail známe, odkaz je na cestě. Zkontrolujte schránku.", "info");
+      }
+      if (mode === "reset") {
+        // No cookie comes back from /password/reset on purpose: reading the mailbox is
+        // not the same as sitting at a trusted device. So: sign in with the new password.
+        resetToken = null;
+        clearResetFromUrl();
+        setMode("login");
+        el.password.value = "";
+        return setMessage("Heslo je nastavené. Teď se přihlaste.", "info");
+      }
+      done(result.payload && result.payload.identity);
     } catch (e) {
       setMessage("Server neodpovídá.");
     } finally {
       el.submit.disabled = false;
     }
+  }
+
+  /** Keeps the one-time token out of the address bar, history and any later Referer. */
+  function clearResetFromUrl() {
+    if (!window.history || !window.history.replaceState) return;
+    window.history.replaceState({}, "", window.location.pathname);
   }
 
   async function init() {
@@ -205,21 +276,42 @@
       if (response.ok) {
         var config = await response.json();
         passwordRule = config.password || null;
+        passwordResetEnabled = Boolean(config.passwordResetEnabled);
         el.passwordHint.textContent = describeRule(passwordRule);
         renderProviders(config.providerList);
       }
     } catch (e) {
-      // No config means no provider buttons and no hint -- e-mail and password still work.
+      // No config means no provider buttons, no hint and no reset -- e-mail and password
+      // still work.
     }
 
-    setMode(false);
+    resetToken = new URLSearchParams(window.location.search).get("reset");
+
+    if (resetToken) {
+      setMode("reset");
+      el.card.hidden = false;
+      el.password.focus();
+      return;
+    }
+
+    setMode("login");
     el.card.hidden = false;
     el.email.focus();
   }
 
   el.form.addEventListener("submit", submit);
   el.switch.addEventListener("click", function () {
-    setMode(!registering);
+    setMode(mode === "register" ? "login" : "register");
+  });
+  el.forgot.addEventListener("click", function () {
+    setMode("forgot");
+    el.email.focus();
+  });
+  el.back.addEventListener("click", function () {
+    resetToken = null;
+    clearResetFromUrl();
+    setMode("login");
+    el.email.focus();
   });
 
   init();
