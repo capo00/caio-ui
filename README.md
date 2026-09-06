@@ -313,11 +313,16 @@ create/update používá `FormFile`). Před uploadem obrázek zmenší a převed
 si postaví vlastní `Crud`/`Crud.generate()` konfiguraci stejným způsobem, jakým je postavená
 tahle — `BinaryCrud` samo o sobě je záměrně obecné, ne rozšiřitelné přes props.
 
+Prop `collection` je **povinná**: `BinaryStore` sdružuje soubory do pojmenovaných kolekcí
+a autorizaci řeší per kolekce, takže tabulka vždycky ukazuje právě jednu z nich. Slouží zároveň
+jako filtr seznamu i jako pole na všem, co se tady vytvoří — ve formuláři pro ni pole není, uživatel
+o ní nic nerozhoduje.
+
 ```javascript
 import { UiElements } from "caio-ui";
 
-function FilesPage() {
-  return <UiElements.BinaryCrud />;
+function GalleryPage() {
+  return <UiElements.BinaryCrud collection="gallery" />;
 }
 ```
 

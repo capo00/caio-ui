@@ -86,6 +86,10 @@ const { seriesList, columnList, sorterList, filterList } = Crud.generate(CONFIG)
  * A ready-made admin table over caio-server's BinaryStore (docs/binary.md, R7). An app that
  * needs its own extra fields (e.g. tags) is expected to compose its own Crud config with
  * Crud.generate() the same way this one does, rather than configuring this component for it.
+ *
+ * `collection` is **required**: BinaryStore groups files into named collections and decides
+ * authorization per collection, so a table always shows exactly one of them. It is used both
+ * as the list filter and as a field on everything created here.
  */
 const BinaryCrud = createVisualComponent({
   //@@viewOn:statics
@@ -101,19 +105,25 @@ const BinaryCrud = createVisualComponent({
   //@@viewOff:defaultProps
 
   render(props) {
+    const { collection, ...restProps } = props;
+
     //@@viewOn:render
     return (
-      <BinaryProvider>
+      <BinaryProvider dtoIn={{ collection }}>
         {(dataList) => (
           <Crud
             header={<Lsi lsi={{ cs: "Soubory", en: "Files" }} />}
-            {...props}
+            {...restProps}
             dataList={dataList}
             seriesList={seriesList}
             columnList={columnList}
             sorterDefinitionList={sorterList}
             filterDefinitionList={filterList}
             onPreSubmit={async (e) => {
+              // Which collection the file lands in is the table's, not the form's --
+              // there is no field for it and the user has nothing to decide.
+              e.data.value.collection = collection;
+
               const origFile = e.data.value.file;
               if (origFile instanceof File && origFile.type?.startsWith("image")) {
                 const { imageFile } = await Uu5ImagingTools.Adjustment.resizeMax(origFile, 2048);
