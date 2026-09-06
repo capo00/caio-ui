@@ -174,6 +174,7 @@ const Crud = createVisualComponent({
       tile,
       compact,
       actionList: propsActionList,
+      getItemActionList: propsGetItemActionList,
       ...blockProps
     } = props;
 
@@ -263,6 +264,16 @@ const Crud = createVisualComponent({
           actionList.unshift(deleteItem);
         }
 
+        // App-specific row actions (upload photos into this gallery, write the result of
+        // this match). They go into the "..." menu rather than next to update/delete: the
+        // row is narrow, and an app that adds two of them would otherwise push delete off
+        // the edge. The callback gets the same argument as uu5tiles hands us, so it can
+        // read `data.data` and call `data.handlerMap`.
+        if (propsGetItemActionList) {
+          const extra = propsGetItemActionList({ data }) ?? [];
+          items.push(...extra);
+        }
+
         if (children) {
           const updateItem = {
             icon: "uugds-pencil",
@@ -284,7 +295,7 @@ const Crud = createVisualComponent({
       // The three lsi values are in here so switching the language re-creates the actions --
       // they are captured in the closure, so without them the tooltips would keep the text
       // that was current when the callback was last created.
-      [disabled, compact, children, moreLsi, deleteLsi, updateLsi],
+      [disabled, compact, children, moreLsi, deleteLsi, updateLsi, propsGetItemActionList],
     );
 
     let actionList;

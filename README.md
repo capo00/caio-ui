@@ -309,6 +309,12 @@ prop obojí přesune do menu, pokud je řádků moc na to, aby se tam vešly čt
 Výběr řádků (checkboxy) odemkne hromadné mazání, které volá `entity/deleteMany({ idList })` a po
 úspěchu tabulku sám reloadne (`handlerMap.load(dtoIn)`), takže smazané řádky zmizí okamžitě.
 
+**Vlastní akce řádku** přidá `getItemActionList={({ data }) => [...]}` — položky se přidají do
+"..." menu vedle *Zobrazit data* a *Kopírovat id*, ne vedle ikon update/delete: řádek je úzký a
+appka, která přidá dvě akce, by jinak vytlačila mazání za okraj. Je to cesta pro operace, které
+nejsou CRUD nad řádkem, ale nad tím, co řádek představuje — nahrát fotky do alba, zapsat výsledek
+zápasu. `data` je tentýž objekt, co dostává `uu5tilesg02`, takže má i `data.data` a `data.handlerMap`.
+
 ### Image
 
 `<UiElements.Image>` — obyčejný `<img>` s `referrerPolicy="no-referrer"`. Nepotřebné pro `BinaryStore`
