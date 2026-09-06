@@ -5,6 +5,18 @@ import OcAuth from "../caio-ui-auth";
 
 //@@viewOff:imports
 
+/**
+ * Route guard.
+ *
+ * `profileList` accepts **scoped** entries: `"teamEditor:*"` matches any profile with that
+ * prefix and a non-empty scope (`teamEditor:6512ab34…`). A scoped role names the record it
+ * applies to inside its own profile string -- `identity.profileList` is a flat list that
+ * goes into the JWT unchanged -- so without the wildcard there is no way to say "anyone who
+ * edits some team may open this screen". Which team it is stays the screen's business;
+ * `UiAuth.getScopeList(identity, "teamEditor")` hands it the list.
+ *
+ * Entries without `:*` keep matching exactly.
+ */
 function withRoute(Component, { profileList } = {}) {
   return createComponent({
     //@@viewOn:statics
@@ -35,7 +47,7 @@ function withRoute(Component, { profileList } = {}) {
             result = <OcAuth.Unauthenticated className={Config.Css.css({ marginBlockStart: 64 })} />;
             break;
           case "authenticated":
-            if (profileList.some((profile) => session.identity.profileList?.includes(profile))) {
+            if (OcAuth.hasProfile(session.identity, profileList)) {
               result = <Component {...props} />;
             } else {
               result = <OcAuth.Unauthorized className={Config.Css.css({ marginBlockStart: 64 })} />;

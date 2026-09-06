@@ -80,7 +80,7 @@ Root wrapper appky a routing guard.
 | `Spa` (`{ top, footer, main, errorFallback }`) | Vizuální root: `ErrorBoundary` (fallback `SpaError`) + `Uu5Elements.ModalBus` + `Uu5Elements.AlertBus`. Když dostane `top` nebo `footer`, složí navíc celý rám stránky přes `Page` — appka pak nemá vlastní komponentu na hlavičku a patičku. Bez nich renderuje jen `children` (jako dřív). |
 | `Page` (`{ top, sticky, footer, maxWidth, padding, fullHeight }`) | Rám stránky: horní lišta + `<main>` + patička. Viz níž. |
 | `useTop()` | `{ stuck, height }` horní lišty. Pro obsah stránky, který má reagovat na to, že lišta dosedla. |
-| `withRoute(Component, { profileList })` | HOC pro route guard. Bez `profileList` prostě vyrenderuje `Component`. S `profileList` čte `UiAuth.useSession()`: `pending` → `null`, `notAuthenticated` → `UiAuth.Unauthenticated`, `authenticated` bez shody profilu → `UiAuth.Unauthorized`, jinak `Component`. |
+| `withRoute(Component, { profileList })` | HOC pro route guard. Bez `profileList` prostě vyrenderuje `Component`. S `profileList` čte `UiAuth.useSession()`: `pending` → `null`, `notAuthenticated` → `UiAuth.Unauthenticated`, `authenticated` bez shody profilu → `UiAuth.Unauthorized`, jinak `Component`. Položka končící `:*` je **rozsahová** — viz níž. |
 
 **`Top` se schválně NEEXPORTUJE.** Lišta se nastavuje výhradně přes prop `top` na `Page`/`Spa`,
 aby na ni byla v celém stacku jedna cesta.
@@ -113,6 +113,29 @@ function App() {
 // stránka dostupná jen profilům Admin/Manager
 const AdminPage = UiApp.withRoute(PlayersPage, { profileList: ["Admin", "Manager"] });
 ```
+
+#### Rozsahové profily (`role:*`)
+
+`identity.profileList` je plochý seznam stringů, který jde beze změny do JWT. Role, která
+platí pro **jeden záznam** místo pro celou appku, si proto nese rozsah ve vlastním jméně:
+`teamEditor:6512ab34…`, `projectOwner:42`. Porovnání na přesnou shodu pak neumí vyjádřit
+„kdokoli, kdo spravuje nějaký tým" — a přesně to route guard obvykle potřebuje, protože
+*který* tým to je, si obrazovka zjistí až uvnitř.
+
+Položka požadovaného seznamu končící **`:*`** proto matchuje jakýkoli profil s tím prefixem
+a **neprázdným** rozsahem; holé `teamEditor` neprojde, protože „editor nějakého týmu" to není.
+Položky bez `:*` se dál porovnávají přesně, takže se pro stávající volání nic nemění.
+
+```javascript
+const MatchesPage = UiApp.withRoute(Matches, { profileList: ["authorities", "teamEditor:*"] });
+
+// uvnitř obrazovky: které týmy to vlastně jsou
+const { identity } = UiAuth.useSession();
+const myTeamIdList = UiAuth.getScopeList(identity, "teamEditor");   // ["6512ab34…", …]
+```
+
+Je to **UX, ne bezpečnostní hranice** — co uživatel smí, rozhoduje server. Guard jen zařídí,
+že se nenabízí obrazovka, ze které by se stejně vrátilo 401.
 
 ### `top` — props horní lišty
 
@@ -188,6 +211,8 @@ Session management napojený 1:1 na `Authentication` modul z `caio-server`.
 | `Unauthorized` | Placeholder box „Nemáte oprávnění“. |
 | `IdentityItem` (`{ identity, firstName?, surname?, name?, photo? }`) | Zobrazí uživatele (`Uu5Elements.InfoItem`). Když nedostane jméno/foto přímo v props, dotáhne je přes `identity/get`. |
 | `FormIdentitySelect` | `uu5g05-forms` async select nad `identity/search` — pro výběr uživatele(ů) ve formuláři (např. přiřazení vlastníka záznamu). |
+| `hasProfile(identity, profileList)` | Má identita aspoň jeden z požadovaných profilů? Položka končící `:*` je rozsahová (viz `withRoute`). Používá ho `withRoute` interně; appka ho volá tam, kde podmiňuje akci, ne celou obrazovku. |
+| `getScopeList(identity, role)` | Rozsahy, které identita drží pro jednu roli: `getScopeList(identity, "teamEditor")` → `["6512ab34…"]`. |
 
 ```javascript
 const { identity, state, login, logout } = UiAuth.useSession();
