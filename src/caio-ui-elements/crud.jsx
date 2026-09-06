@@ -3,7 +3,10 @@ import { createVisualComponent, createComponent, useCallback, useState, useLsi, 
 import Uu5Elements from "uu5g05-elements";
 import Uu5Forms from "uu5g05-forms";
 import Uu5TilesElements from "uu5tilesg02-elements";
-import Uu5CodeKit from "uu5codekitg01";
+// `uu5codekitg01-forms`, ne `uu5codekitg01`: formulářové vstupy editoru se odštěpily do
+// vlastního balíčku, který jede na řadě 3.x (dnes 3.4.1), zatímco základní `uu5codekitg01`
+// stojí na 2.8.3. Editor uvnitř je Monaco, ne Ace -- proto tu není `theme`.
+import Uu5CodeKit from "uu5codekitg01-forms";
 import { withServerlessTable, ListBlock } from "../uu5tilesg02-extension";
 import importLsi from "../lsi/import-lsi";
 import Config from "./config/config";
@@ -399,13 +402,10 @@ const Crud = createVisualComponent({
             }}
           >
             <Uu5Forms.Form.View>
-              <Uu5CodeKit.FormJson
-                name="itemList"
-                format="pretty"
-                displayGutter={false}
-                required
-                theme="tomorrow_night"
-              />
+              {/* `format="pretty"` ani `theme` se nepředává: formátování si Json.Input
+                  nastavuje sám a barevné schéma jede z GDS podkladu (Monaco), ne z názvu
+                  Ace tématu. */}
+              <Uu5CodeKit.FormJson name="itemList" displayGutter={false} required />
             </Uu5Forms.Form.View>
           </FormModal>
         )}
@@ -416,13 +416,7 @@ const Crud = createVisualComponent({
             open={!!displayData}
             onClose={() => setDisplayData()}
           >
-            <Uu5CodeKit.Json.Input
-              value={displayData}
-              format="pretty"
-              displayGutter={false}
-              readOnly
-              theme="tomorrow_night"
-            />
+            <Uu5CodeKit.Json.Input value={displayData} displayGutter={false} readOnly />
           </Uu5Elements.Modal>
         )}
 

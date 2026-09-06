@@ -11,7 +11,7 @@ React komponenty postavené nad Unicorn **uu5g05**/uuSuite ekosystémem, navrže
   ```
   peerDependencies: uu5g05, uu5g05-elements, uu5g05-forms,
                     uu5tilesg02, uu5tilesg02-elements, uu5tilesg02-controls,
-                    uu5codekitg01, uu5richtextg01-elements,
+                    uu5codekitg01-forms, uu5richtextg01-elements,
                     uu5imagingg01, uu5imagingg01-tools
   ```
 

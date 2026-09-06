@@ -3,7 +3,8 @@ import { createVisualComponent, useEffect, useState, Utils, Lsi } from "uu5g05";
 import Uu5Elements from "uu5g05-elements";
 import Uu5Forms from "uu5g05-forms";
 import Uu5RichTextElements from "uu5richtextg01-elements";
-import Uu5CodeKit from "uu5codekitg01";
+// Formulářové vstupy editoru jsou ve `-forms` balíčku (řada 3.x), viz caio-ui-elements/crud.jsx.
+import Uu5CodeKit from "uu5codekitg01-forms";
 import importLsi from "../lsi/import-lsi";
 import Config from "./config/config";
 

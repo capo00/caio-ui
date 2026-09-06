@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "main": "src/index.js",
   "peerDependencies": {
-    "uu5codekitg01": "*",
+    "uu5codekitg01-forms": "*",
     "uu5g05": "*",
     "uu5g05-elements": "*",
     "uu5g05-forms": "*",
