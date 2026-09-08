@@ -213,7 +213,7 @@ function renderLogo(logo) {
           : onClick
       }
       colorScheme="building"
-      significance="common"
+      significance={logo.significance ?? "common"}
     />
   );
 }
