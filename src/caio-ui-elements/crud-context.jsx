@@ -40,10 +40,15 @@ const CrudContext = {
         const handlerMap = {
           load: calls.list,
           create: calls.createItem,
-          deleteMany: calls.deleteMany,
         };
 
+        // Bulk operations are opt-in, the same way. An app whose entity has no
+        // `createMany`/`deleteMany` use case can pass `calls` without them, and `Crud` then
+        // hides the corresponding buttons instead of offering an action that 404s. Wiring
+        // `deleteMany` in unconditionally (as this used to) made the bulk-delete action
+        // appear on every screen, including entities that only support deleting one row.
         if (calls.createMany) handlerMap.createMany = calls.createMany;
+        if (calls.deleteMany) handlerMap.deleteMany = calls.deleteMany;
 
         const dataList = useDataList({
           initialDtoIn: dtoIn,

@@ -338,7 +338,7 @@ const Crud = createVisualComponent({
           initialFilterList={initialFilterList}
           sorterDefinitionList={sorterDefinitionList}
           initialSorterList={initialSorterList}
-          selectable={readOnly ? undefined : "multiple"}
+          selectable={readOnly || !handlerMap.deleteMany ? undefined : "multiple"}
           displaySeriesButton={!readOnly}
           {...blockProps}
           actionList={actionList}
@@ -347,7 +347,7 @@ const Crud = createVisualComponent({
           getItemActionList={readOnly ? undefined : getActionList}
           onLoad={onLoad}
           getBulkActionList={
-            readOnly
+            readOnly || !handlerMap.deleteMany
               ? undefined
               : (selectedData) => [
                 {
